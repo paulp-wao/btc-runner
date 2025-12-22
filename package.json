@@ -3,7 +3,7 @@
 	"version": "1.0.0",
 	"private": true,
 	"type": "module",
-	"homepage": "https://paulpeters144.github.io/btc-runner-game/",
+	"homepage": "https://paulp-wao.github.io/btc-runner-game/",
 	"scripts": {
 		"dev": "vite",
 		"build": "tsc && vite build",

@@ -2,8 +2,6 @@
 
 A 2D platformer game built with TypeScript and Pixi.js. Run and jump across platforms as a bunny in this browser-based game.
 
-**[Play the Game](https://paulpeters144.github.io/btc-runner-game/)**
-
 ## Tech Stack
 
 - **Pixi.js** - 2D WebGL rendering

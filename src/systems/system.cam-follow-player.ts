@@ -1,9 +1,9 @@
 import type { ISystem } from '~/ecs/system.agg';
+import { CameraEntity } from '~/entity/entity.camera';
 import { PlayerEntity } from '~/entity/entity.player';
 import type { IDiContainer } from '~/util/di-container';
 
 export const createCamFollowPlayerSystem = (di: IDiContainer): ISystem => {
-  const camera = di.camera();
   const entityStore = di.entityStore();
 
   let initialized = false;
@@ -13,8 +13,9 @@ export const createCamFollowPlayerSystem = (di: IDiContainer): ISystem => {
     update: () => {
       if (initialized) return;
 
+      const camera = entityStore.first(CameraEntity);
       const player = entityStore.first(PlayerEntity);
-      if (!player) return;
+      if (!camera || !player) return;
 
       camera.follow(player.ctr, {
         speed: 0,

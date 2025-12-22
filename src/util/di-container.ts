@@ -3,14 +3,12 @@ import { createEntityStore, type IEntityStore } from '~/ecs/entity.store';
 import { createSystemAgg, type ISystemAgg } from '~/ecs/system.agg';
 import { createSceneEngine, type ISceneEngine } from '~/scenes/scene-engine';
 import { createAssetLoader, type IAssetLoader } from './asset-loader';
-import { createCamera, type ICamera } from './camera';
 import { createEventBus, type IEventBus } from './event-bus';
 import { getGameConstants, type IGameConstants } from './game.constants';
 
 export interface IDiContainer {
   appRef: () => PIXI.Application;
   assetLoader: () => IAssetLoader;
-  camera: () => ICamera;
   entityStore: () => IEntityStore;
   eventBus: () => IEventBus;
   gameConstants: () => IGameConstants;
@@ -24,7 +22,6 @@ const diContainer = (): IDiContainer => {
   let _eventBus: IEventBus | undefined;
   let _entityStore: IEntityStore | undefined;
   let _gameRef: PIXI.Container | undefined;
-  let _cameara: ICamera | undefined;
   let _assetLoader: IAssetLoader | undefined;
   let _sceneEngine: ISceneEngine | undefined;
   let _systemAgg: ISystemAgg | undefined;
@@ -41,13 +38,6 @@ const diContainer = (): IDiContainer => {
       _assetLoader = createAssetLoader();
     }
     return _assetLoader;
-  };
-
-  const camera = () => {
-    if (!_cameara) {
-      _cameara = createCamera(appRef(), gameRef(), gameConstants());
-    }
-    return _cameara;
   };
 
   const eventBus = () => {
@@ -90,7 +80,6 @@ const diContainer = (): IDiContainer => {
   return {
     appRef,
     assetLoader,
-    camera,
     entityStore,
     eventBus,
     gameConstants,

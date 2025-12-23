@@ -14,6 +14,10 @@ export interface IEntityStore {
 
 export class EntityStore implements IEntityStore {
   private _store = new Map<string, Entity[]>();
+  private _idCache = new Map<string, Entity>();
+  private _indexCache = new Map<Entity, number>();
+  // biome-ignore lint/suspicious/noExplicitAny: cache constructor to name mapping
+  private _ctorNameCache = new Map<new (...args: any[]) => Entity, string>();
   private _gameRef: PIXI.Container;
 
   constructor(props: { gameRef: PIXI.Container }) {
@@ -21,32 +25,88 @@ export class EntityStore implements IEntityStore {
   }
 
   public add<T extends Entity>(...entities: T[]) {
-    for (const entity of entities) {
-      const key = entity.constructor.name;
-      if (!this._store.has(key)) {
-        this._store.set(key, []);
+    const store = this._store;
+    const indexCache = this._indexCache;
+    const gameRef = this._gameRef;
+    // biome-ignore lint/suspicious/noExplicitAny: need to cache constructor
+    let prevCtor: (new (...args: any[]) => Entity) | undefined;
+    let prevKey: string | undefined;
+    let prevList: Entity[] | undefined;
+    for (let i = 0; i < entities.length; i++) {
+      const entity = entities[i];
+      // biome-ignore lint/suspicious/noExplicitAny: constructor type
+      const ctor = entity.constructor as new (...args: any[]) => Entity;
+      let key: string;
+      let list: Entity[];
+      // Fast path: same type as previous entity
+      if (ctor === prevCtor && prevKey !== undefined && prevList !== undefined) {
+        key = prevKey;
+        list = prevList;
+      } else {
+        key = this._getKey(ctor);
+        const existing = store.get(key);
+        if (existing === undefined) {
+          list = [];
+          store.set(key, list);
+        } else {
+          list = existing;
+        }
+        prevCtor = ctor;
+        prevKey = key;
+        prevList = list;
       }
-      this._store.get(key)?.push(entity);
-      this._gameRef.addChild(entity.ctr);
+      indexCache.set(entity, list.length);
+      list.push(entity);
+      gameRef.addChild(entity.ctr);
     }
   }
 
   public remove(...entities: Entity[]) {
-    for (const entity of entities) {
-      const key = entity.constructor.name;
-      const list = this._store.get(key);
-      if (!list) continue;
+    const store = this._store;
+    const indexCache = this._indexCache;
+    const idCache = this._idCache;
+    const gameRef = this._gameRef;
+    // biome-ignore lint/suspicious/noExplicitAny: need to cache constructor
+    let prevCtor: (new (...args: any[]) => Entity) | undefined;
+    let prevKey: string | undefined;
+    let prevList: Entity[] | undefined;
+    for (let i = 0; i < entities.length; i++) {
+      const entity = entities[i];
+      const index = indexCache.get(entity);
+      if (index === undefined) continue;
 
-      const index = list.indexOf(entity);
-      if (index !== -1) {
-        const entToRemove = list[index];
-        list.splice(index, 1);
-        this._gameRef.removeChild(entToRemove.ctr);
-        this._idCache.delete(entToRemove.id);
+      // biome-ignore lint/suspicious/noExplicitAny: constructor type
+      const ctor = entity.constructor as new (...args: any[]) => Entity;
+      let key: string;
+      let list: Entity[] | undefined;
+      // Fast path: same type as previous entity
+      if (ctor === prevCtor && prevKey !== undefined) {
+        key = prevKey;
+        list = prevList;
+      } else {
+        key = this._getKey(ctor);
+        list = store.get(key);
+        prevCtor = ctor;
+        prevKey = key;
+        prevList = list;
       }
+      if (list === undefined) continue;
+
+      // Swap-remove: O(1) instead of O(n) splice
+      const lastIndex = list.length - 1;
+      if (index !== lastIndex) {
+        const swapped = list[lastIndex];
+        list[index] = swapped;
+        indexCache.set(swapped, index);
+      }
+      list.pop();
+      indexCache.delete(entity);
+      gameRef.removeChild(entity.ctr);
+      idCache.delete(entity.id);
 
       if (list.length === 0) {
-        this._store.delete(key);
+        store.delete(key);
+        prevList = undefined;
       }
     }
   }
@@ -56,7 +116,6 @@ export class EntityStore implements IEntityStore {
     return (this._store.get(type.name) as T[]) || [];
   }
 
-  private _idCache = new Map<string, Entity>();
   public getById(id: string): Entity | undefined {
     const cacheHit = this._idCache.get(id);
     if (cacheHit) return cacheHit;
@@ -81,6 +140,17 @@ export class EntityStore implements IEntityStore {
 
   public clear() {
     this._store.clear();
+    this._indexCache.clear();
+  }
+
+  // biome-ignore lint/suspicious/noExplicitAny: need to accept any constructor
+  private _getKey(ctor: new (...args: any[]) => Entity): string {
+    let key = this._ctorNameCache.get(ctor);
+    if (key === undefined) {
+      key = ctor.name;
+      this._ctorNameCache.set(ctor, key);
+    }
+    return key;
   }
 }
 

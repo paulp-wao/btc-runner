@@ -1,7 +1,7 @@
 import * as PIXI from 'pixi.js';
 import { bench, describe } from 'vitest';
 import { Entity } from '~/ecs/entity.ts';
-import { type IEntityStore, createEntityStore } from './entity.store.ts';
+import { createEntityStore, type IEntityStore } from './entity.store.ts';
 
 class TestEntity extends Entity {}
 class AnotherEntity extends Entity {}

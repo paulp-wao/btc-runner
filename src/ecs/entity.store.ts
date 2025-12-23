@@ -76,8 +76,7 @@ export class EntityStore implements IEntityStore {
 
   // biome-ignore lint/suspicious/noExplicitAny: need this to allow search by ctr name
   public first<T extends Entity>(type: new (...args: any[]) => T) {
-    const result = this._store.get(type.name)?.at(0);
-    return result as T | undefined;
+    return this._store.get(type.name)?.[0] as T | undefined;
   }
 
   public clear() {

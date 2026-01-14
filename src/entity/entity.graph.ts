@@ -3,12 +3,16 @@ import { Entity } from '../ecs/entity';
 
 export class GraphEntity extends Entity {
   private readonly graphics: PIXI.Graphics;
+  private readonly dotGraphics: PIXI.Graphics;
+  private readonly valueText: PIXI.Text;
   private readonly color: number;
   private readonly lineWidth: number;
   private dataPoints: number[] = [];
   private ticks: number;
   private pointSpacing: number;
   private framesPerPoint: number;
+  private lastValidY: number | null = null;
+  private moonValue: number = 0;
 
   constructor(props: {
     width: number;
@@ -29,14 +33,37 @@ export class GraphEntity extends Entity {
       framesPerPoint = 5,
     } = props;
     const graphics = new PIXI.Graphics();
-    super(graphics);
+    const dotGraphics = new PIXI.Graphics();
+    const valueText = new PIXI.Text({
+      text: '',
+      style: {
+        fontFamily: 'Arial',
+        fontSize: 16,
+        fill: 0x00ff00, // Green color
+        align: 'center',
+      },
+    });
+    valueText.anchor.set(0.5, 1); // Center horizontally, anchor at bottom
+    const container = new PIXI.Container();
+    container.addChild(graphics);
+    container.addChild(dotGraphics);
+    container.addChild(valueText);
+    super(container);
 
     this.graphics = graphics;
+    this.dotGraphics = dotGraphics;
+    this.valueText = valueText;
     this.color = color;
     this.lineWidth = lineWidth;
     this.pointSpacing = pointSpacing;
     this.framesPerPoint = framesPerPoint;
     this.ticks = 0;
+
+    // Initialize dot (hidden initially)
+    this.dotGraphics.circle(0, 0, 3);
+    this.dotGraphics.fill({ color: 0x000000 });
+    this.dotGraphics.visible = false;
+    this.valueText.visible = false;
 
     // Pre-populate the graph with initial data points
     this.initializeDataPoints();
@@ -251,5 +278,63 @@ export class GraphEntity extends Entity {
 
     // Return the slope (dy/dx)
     return dx !== 0 ? dy / dx : 0;
+  }
+
+   /*
+   * Updates the position of the black dot on the graph based on the character's position.
+   * @param worldX The x coordinate of the character in world coordinates
+   * @param worldY The y coordinate of the character in world coordinates
+   */
+  public updateDotPosition(worldX: number, worldY: number): void {
+    // Convert world X to graph's local X coordinate
+    const localX = worldX - this.ctr.x;
+    const y = this.getYAtX(localX);
+    
+    // Check if we're past the end of the graph (getYAtX returns 0 when past the end)
+    const pointIndex = (localX + this.getOffset()) / this.pointSpacing;
+    const isPastGraph = pointIndex >= this.dataPoints.length - 1;
+    
+    if (y !== null && !isPastGraph) {
+      // We're still on the graph - show dot and update value
+      this.lastValidY = y;
+      this.moonValue = Math.abs(y * 2031.57);
+      
+      // Set dot position in local coordinates (relative to graph container)
+      this.dotGraphics.position.set(localX, y);
+      this.dotGraphics.visible = true;
+
+      // Calculate and display the value: |Y * 2031.57|
+      const value = this.moonValue;
+      // Format the value with commas and 2 decimal places
+      const formattedValue = `+$${value.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+      this.valueText.text = formattedValue;
+      
+      // Position text above the character (convert world Y to local)
+      const localY = worldY - this.ctr.y;
+      this.valueText.position.set(localX, localY - 40);
+      this.valueText.visible = true;
+    } else {
+      // We're past the graph (on the moon) - hide dot, keep text following character
+      this.dotGraphics.visible = false;
+      
+      // Keep incrementing the value
+      if (this.moonValue > 0) {
+        this.moonValue += 2031.57;
+      } else if (this.lastValidY !== null) {
+        // Initialize from last valid position if we have one
+        this.moonValue = Math.abs(this.lastValidY * 2031.57) + 2031.57;
+      } else {
+        this.moonValue = 2031.57;
+      }
+      
+      // Format the value with commas and 2 decimal places
+      const formattedValue = `+$${this.moonValue.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+      this.valueText.text = formattedValue;
+      
+      // Position text above the character (convert world coordinates to local)
+      const localY = worldY - this.ctr.y;
+      this.valueText.position.set(localX, localY - 40);
+      this.valueText.visible = true;
+    }
   }
 }

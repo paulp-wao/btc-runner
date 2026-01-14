@@ -22,7 +22,7 @@ export const createGraphCollisionSystem = (di: IDiContainer): ISystem => {
 
       // ctr.x IS already the center due to anchor (0.5)
       const playerCenter = player.ctr.x;
-      const curveY = graph.getCurveYAtX(playerCenter);
+      const curveY = graph.getYAtX(playerCenter);
 
       if (curveY !== null) {
         // Only check collision when player is falling or stationary (not jumping upward)

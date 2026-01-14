@@ -9,8 +9,10 @@ export class GraphEntity extends Entity {
   private readonly lineWidth: number;
   private dataPoints: number[] = [];
   private maxPoints: number;
-  private framesBetweenPoints: number; // Number of frames that should elapse between points being added
-  private scrollOffset: number; // Current scroll offset in pixels
+  private ticks: number; 
+  private pointSpacing: number;
+  private framesPerPoint: number;
+
 
   constructor(props: {
     width: number;
@@ -18,9 +20,10 @@ export class GraphEntity extends Entity {
     maxPoints?: number;
     color?: number;
     lineWidth?: number;
-    framesBetweenPoints?: number; // Number of frames between adding new points (default: 1)
+    pointSpacing?: number;
+    framesPerPoint?: number;
   }) {
-    const { width, height, maxPoints = 100, color = 0x00ff00, lineWidth = 2, framesBetweenPoints = 10 } = props;
+    const { width, height, maxPoints = 100, color = 0x00ff00, lineWidth = 2, pointSpacing = 10, framesPerPoint = 10 } = props;
     const graphics = new PIXI.Graphics();
     super(graphics);
 
@@ -30,8 +33,9 @@ export class GraphEntity extends Entity {
     this.color = color;
     this.lineWidth = lineWidth;
     this.maxPoints = maxPoints;
-    this.framesBetweenPoints = framesBetweenPoints;
-    this.scrollOffset = 0;
+    this.pointSpacing = pointSpacing;
+    this.framesPerPoint = framesPerPoint;
+    this.ticks = 0;
     
     // Pre-populate the graph with initial data points
     this.initializeDataPoints();
@@ -44,7 +48,7 @@ export class GraphEntity extends Entity {
     const timeStep = 0.1; // Step size for generating initial points
     let time = -(this.maxPoints - 1) * timeStep; // Start from negative time
     
-    for (let i = 0; i < this.maxPoints; i++) {
+    for (let i = 0; i < 10; i++) {
       const value = 
         Math.sin(time) * 0.5 +
         Math.sin(time * 2.3) * 0.3 +
@@ -60,47 +64,24 @@ export class GraphEntity extends Entity {
     this.redraw();
   }
 
-  public setFramesBetweenPoints(frames: number): void {
-    this.framesBetweenPoints = Math.max(1, frames);
-  }
-
-  public getFramesBetweenPoints(): number {
-    return this.framesBetweenPoints;
-  }
-
   public updateCurve(newValue: number): void {
-    // Normalize the value to fit within the graph height (0 to height)
-    // Assuming values are between -1 and 1, adjust as needed
-    const normalizedValue = ((newValue + 1) / 2) * this.height;
     
-    this.dataPoints.push(normalizedValue);
+    let lastValue = this.dataPoints[this.dataPoints.length - 1];
+    let newAbsoluteValue = lastValue + newValue;
+    this.dataPoints.push(newAbsoluteValue);
     
-    // Keep only the last maxPoints values
-    if (this.dataPoints.length > this.maxPoints) {
-      this.dataPoints.shift();
-    }
+    // // Keep only the last maxPoints values
+    // if (this.dataPoints.length > this.maxPoints) {
+    //   this.dataPoints.shift();
+    // }
     
-    this.redraw();
+    // this.redraw();
   }
 
   public updateScroll(_delta: number): void {
     if (this.dataPoints.length < 2) return;
     
-    const pointSpacing = this.width / (this.maxPoints - 1);
-    
-    // Calculate scroll speed per frame to ensure graph always fills the screen
-    // If we add a point every N frames, we need to scroll by pointSpacing/N per frame
-    // This ensures that after N frames, we've scrolled exactly one point spacing,
-    // which matches when a new point is added, keeping the graph filled
-    const scrollPerFrame = pointSpacing / this.framesBetweenPoints;
-    this.scrollOffset += scrollPerFrame;
-    
-    // When scroll offset exceeds point spacing, we need to remove the oldest data point
-    // and reset the offset to maintain proper alignment
-    while (this.scrollOffset >= pointSpacing && this.dataPoints.length > 1) {
-      this.scrollOffset -= pointSpacing;
-      this.dataPoints.shift(); // Remove oldest point
-    }
+    this.ticks += 1;
     
     // Redraw to show the updated scroll position
     this.redraw();
@@ -113,15 +94,16 @@ export class GraphEntity extends Entity {
       return;
     }
 
-    const pointSpacing = this.width / (this.maxPoints - 1);
     
     // Draw the curve line with scroll offset applied
     // Start from the first point, offset by scroll amount
-    const startX = -this.scrollOffset;
+    const startX = -this.ticks;
     this.graphics.moveTo(startX, this.dataPoints[0]);
+
+    let offset = this.getOffset();
     
     for (let i = 1; i < this.dataPoints.length; i++) {
-      const x = i * pointSpacing - this.scrollOffset;
+      const x = i * this.pointSpacing - this.ticks;
       const y = this.dataPoints[i];
       this.graphics.lineTo(x, y);
     }
@@ -133,47 +115,48 @@ export class GraphEntity extends Entity {
     this.ctr.position.set(point.x, point.y);
   }
 
+  private getOffset(): number {
+    return this.ticks * (this.pointSpacing/this.framesPerPoint);
+  }
+
   /**
-   * Get the Y value of the curve at a given X position (in world coordinates)
-   * Returns null if X is outside the curve range
+   * Returns the y value of the graph at the given x coordinate.
+   * Uses linear interpolation between data points.
+   * @param x The x coordinate in the graph's coordinate system
+   * @returns The corresponding y value, or null if x is outside the graph bounds
    */
-  public getCurveYAtX(worldX: number): number | null {
-    if (this.dataPoints.length < 2) return null;
-    
-    // Convert world X to local X (relative to graph position)
-    const localX = worldX - this.ctr.x;
-    
-    const pointSpacing = this.width / (this.maxPoints - 1);
-    
-    // Account for scroll offset when calculating point index
-    const adjustedX = localX + this.scrollOffset;
-    
-    // Check if X is within the curve bounds (accounting for scroll)
-    if (adjustedX < 0 || adjustedX > this.width) return null;
-    
-    const pointIndex = adjustedX / pointSpacing;
-    
-    // Get the two surrounding points for interpolation
+  public getYAtX(x: number): number | null {
+    if (this.dataPoints.length === 0) {
+      return null;
+    }
+
+    // Convert x coordinate to point index accounting for scroll offset
+    // x = i * pointSpacing - ticks
+    // i = (x + ticks) / pointSpacing
+    const pointIndex = (x + this.getOffset()) / this.pointSpacing;
+
+    // Handle boundary cases
+    if (pointIndex < 0) {
+      // x is before the first point, return first point's y value
+      return this.dataPoints[0];
+    }
+
+    if (pointIndex >= this.dataPoints.length - 1) {
+      // x is at or after the last point, return last point's y value
+      return this.dataPoints[this.dataPoints.length - 1];
+    }
+
+    // Linear interpolation between two points
     const lowerIndex = Math.floor(pointIndex);
     const upperIndex = Math.ceil(pointIndex);
-    
-    if (lowerIndex < 0 || upperIndex >= this.dataPoints.length) return null;
-    
-    if (lowerIndex === upperIndex) {
-      // Exact point match
-      return this.ctr.y + this.dataPoints[lowerIndex];
-    }
-    
-    // Linear interpolation between the two points
-    const lowerY = this.dataPoints[lowerIndex];
-    const upperY = this.dataPoints[upperIndex];
-    const lowerX = lowerIndex * pointSpacing;
-    const upperX = upperIndex * pointSpacing;
-    
-    const t = (localX - lowerX) / (upperX - lowerX);
-    const interpolatedY = lowerY + (upperY - lowerY) * t;
-    
-    return this.ctr.y + interpolatedY;
+    const t = pointIndex - lowerIndex; // interpolation factor (0 to 1)
+
+    const y1 = this.dataPoints[lowerIndex];
+    const y2 = this.dataPoints[upperIndex];
+
+    return y1 + (y2 - y1) * t;
   }
+
+  
 }
 

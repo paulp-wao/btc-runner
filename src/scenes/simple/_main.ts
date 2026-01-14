@@ -63,16 +63,18 @@ export const simpleScene = (di: IDiContainer): IScene => {
         animationSpeed: 0.25,
       });
 
+      // Celebration egg sheet: 2 frames horizontal
       const celebrationEggSprite = assetLoader.createAnimatedSprite('celebration_egg', {
         frames: 2,
-        frameWidth: 512,  // Adjust to actual frame width
-        frameHeight: 488, // Adjust to actual frame height
-        animationSpeed: 0.25,
+        frameWidth: 409,  // Adjust to actual frame width
+        frameHeight: 386, // Adjust to actual frame height
+        animationSpeed: 0.1,
       });
 
       const player = new PlayerEntity({
         running: runningEggSprite,
         jumping: jumpingEggSprite,
+        celebrating: celebrationEggSprite,
       });
 
       player.move({ x: playerSpawn.spawnX, y: playerSpawn.spawnY });

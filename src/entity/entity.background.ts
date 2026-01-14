@@ -34,12 +34,14 @@ export class BackgroundEntity extends Entity {
     
     // Create gradient from Green (bottom) -> Blue (middle) -> Black (top)
     // Using multiple rectangles to simulate gradient
+    // In PIXI, y=0 is at top, so we draw from bottom to top
     const steps = 200; // Number of gradient steps for smooth transition
     const stepHeight = this.height / steps;
 
     for (let i = 0; i < steps; i++) {
-      const y = i * stepHeight;
-      const progress = i / (steps - 1); // 0 at bottom, 1 at top
+      // Draw from bottom (y = height) to top (y = 0)
+      const y = this.height - (i * stepHeight);
+      const progress = i / (steps - 1); // 0 at bottom (green), 1 at top (black)
       
       let r: number, g: number, b: number;
       
@@ -70,17 +72,19 @@ export class BackgroundEntity extends Entity {
       return seed / 233280;
     };
 
-    // Star density increases from bottom (0) to top (1)
+    // Star density increases from bottom (green) to top (black)
+    // Since gradient is reversed: y=0 is black (top), y=height is green (bottom)
     // Bottom: very few stars, Top: many stars
     const totalStars = Math.floor(this.width * this.height / 800); // Adjust density as needed
     
     for (let i = 0; i < totalStars; i++) {
       const x = random() * this.width;
       const y = random() * this.height;
-      const progress = y / this.height; // 0 at bottom, 1 at top
+      // Reverse progress: y=0 (top/black) should have progress=1, y=height (bottom/green) should have progress=0
+      const progress = 1 - (y / this.height); // 1 at top (black), 0 at bottom (green)
       
-      // Only draw stars in darker areas (more stars as we go up)
-      // Start showing stars around 30% up, increase density toward top
+      // Only draw stars in darker areas (more stars at top where black is)
+      // Start showing stars around 30% from bottom, increase density toward top
       const starProbability = Math.max(0, (progress - 0.3) / 0.7); // 0 at 30%, 1 at 100%
       
       if (random() < starProbability) {
@@ -105,14 +109,18 @@ export class BackgroundEntity extends Entity {
 
   public updateScrollProgress(progress: number): void {
     // progress: 0 = showing bottom (green), 1 = showing top (black)
-    // The gradient is 10x the canvas height, so we need to scroll it
-    // Position it so that at progress 0, we see the bottom (green)
-    // and at progress 1, we see the top (black)
-    // At progress 0: position.y = -(gradientHeight - canvasHeight) = -9 * canvasHeight
-    // At progress 1: position.y = 0
+    // The gradient falls downward: starts with green at bottom, black falls from top
+    // Gradient is now drawn: green at local y=height (bottom of graphic), black at local y=0 (top of graphic)
+    // To show green at canvas bottom: position gradient so local y=height aligns with canvas bottom
+    // Canvas bottom is at world y = canvasHeight
+    // At progress 0: position.y = canvasHeight - height = -maxOffset (green at bottom of screen)
+    // At progress 1: position.y = 0 (black at top of screen)
+    // As progress increases, gradient moves UP (y goes from -maxOffset to 0), making black "fall" down
     // Preserve x position to maintain full canvas width coverage
     const maxOffset = this.height - this.canvasHeight;
     const currentX = this.ctr.position.x;
-    this.ctr.position.set(currentX, -progress * maxOffset);
+    // Start at -maxOffset (green visible at bottom), move to 0 (black visible at top)
+    // As gradient moves up (y increases from negative to 0), black from top appears to fall down
+    this.ctr.position.set(currentX, -maxOffset * (1 - progress));
   }
 }

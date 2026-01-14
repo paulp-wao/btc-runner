@@ -14,7 +14,7 @@ export const createGradientScrollSystem = (di: IDiContainer): ISystem => {
 
       // Increment scroll progress over time
       // Adjust the speed multiplier to control how fast it scrolls
-      const scrollSpeed = 0.01; // Adjust this value to change scroll speed
+      const scrollSpeed = 0.005; // Adjust this value to change scroll speed (lower = slower)
       scrollProgress += delta * scrollSpeed;
       
       // Clamp progress between 0 and 1

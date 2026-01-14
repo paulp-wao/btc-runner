@@ -67,7 +67,7 @@ export const simpleScene = (di: IDiContainer): IScene => {
       systemAgg.add(
         //createPlayerMovementSystem(di),
         //createJumpSystem(di),
-        //createGravitySystem(di),
+        createGravitySystem(di),
         createGraphCollisionSystem(di),
         //createBoundaryResetSystem(di),
         createCamFollowPlayerSystem(di),

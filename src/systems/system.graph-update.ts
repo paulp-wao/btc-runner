@@ -14,7 +14,7 @@ export const createGraphUpdateSystem = (di: IDiContainer): ISystem => {
 
       // Generate a dynamic value using a combination of sine waves
       // This creates an interesting, continuously changing curve
-      time += delta * 0.1; // Adjust speed of animation
+      time += delta * 0.5; // Adjust speed of animation
       
       const value = 
         Math.sin(time) * 0.5 +

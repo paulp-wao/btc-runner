@@ -4,12 +4,15 @@ import { Entity } from '../ecs/entity';
 export interface PlayerAnimations {
   running: PIXI.AnimatedSprite;
   jumping: PIXI.AnimatedSprite;
+  celebrating: PIXI.AnimatedSprite;
 }
 
 export class PlayerEntity extends Entity {
   private runningSprite: PIXI.AnimatedSprite;
   private jumpingSprite: PIXI.AnimatedSprite;
+  private celebratingSprite: PIXI.AnimatedSprite;
   private isJumping = false;
+  private isCelebrating = false;
   private collisionWidth: number;
   private collisionHeight: number;
   private readonly debugGraphics: PIXI.Graphics;
@@ -20,19 +23,23 @@ export class PlayerEntity extends Entity {
 
     this.runningSprite = animations.running;
     this.jumpingSprite = animations.jumping;
+    this.celebratingSprite = animations.celebrating;
 
     // Anchor at bottom-center so both sprites share the same "feet" position
     this.runningSprite.anchor.set(0.5, 1);
     this.jumpingSprite.anchor.set(0.5, 1);
+    this.celebratingSprite.anchor.set(0.5, 1);
 
     // Jump animation plays once and holds on last frame
     this.jumpingSprite.loop = false;
 
     container.addChild(this.runningSprite);
     container.addChild(this.jumpingSprite);
+    container.addChild(this.celebratingSprite);
 
     this.runningSprite.visible = true;
     this.jumpingSprite.visible = false;
+    this.celebratingSprite.visible = false;
     this.runningSprite.play();
 
     this.ctr.scale.set(0.1, 0.1);
@@ -74,7 +81,7 @@ export class PlayerEntity extends Entity {
   }
 
   public setJumping(jumping: boolean): void {
-    if (this.isJumping === jumping) return;
+    if (this.isJumping === jumping || this.isCelebrating) return;
 
     this.isJumping = jumping;
 
@@ -89,6 +96,30 @@ export class PlayerEntity extends Entity {
     } else {
       this.jumpingSprite.visible = false;
       this.jumpingSprite.currentFrame = 0;
+      this.runningSprite.visible = true;
+      this.runningSprite.play();
+    }
+  }
+
+  public setCelebrating(celebrating: boolean): void {
+    if (this.isCelebrating === celebrating) return;
+
+    this.isCelebrating = celebrating;
+
+    // Stop all animations first
+    this.runningSprite.stop();
+    this.jumpingSprite.stop();
+    this.celebratingSprite.stop();
+
+    if (celebrating) {
+      this.isJumping = false;
+      this.runningSprite.visible = false;
+      this.jumpingSprite.visible = false;
+      this.celebratingSprite.visible = true;
+      this.celebratingSprite.gotoAndPlay(0);
+    } else {
+      this.celebratingSprite.visible = false;
+      this.celebratingSprite.currentFrame = 0;
       this.runningSprite.visible = true;
       this.runningSprite.play();
     }

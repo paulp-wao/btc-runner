@@ -33,7 +33,7 @@ export const simpleScene = (di: IDiContainer): IScene => {
     load: async () => {
       const camera = new CameraEntity({ appRef, gameRef, gameConstants });
 
-      await assetLoader.preload('running_egg', 'jumping_egg');
+      await assetLoader.preload('running_egg', 'jumping_egg', 'celebration_egg');
 
       const background = new BackgroundEntity({
         width: gameConstants.virtualGameWidth * 3, // 3x width to cover camera movement
@@ -64,9 +64,18 @@ export const simpleScene = (di: IDiContainer): IScene => {
         animationSpeed: 0.25,
       });
 
+      // Celebration egg sheet: 2 frames horizontal
+      const celebrationEggSprite = assetLoader.createAnimatedSprite('celebration_egg', {
+        frames: 2,
+        frameWidth: 409,  // Adjust to actual frame width
+        frameHeight: 386, // Adjust to actual frame height
+        animationSpeed: 0.1,
+      });
+
       const player = new PlayerEntity({
         running: runningEggSprite,
         jumping: jumpingEggSprite,
+        celebrating: celebrationEggSprite,
       });
 
       player.move({ x: playerSpawn.spawnX, y: playerSpawn.spawnY });

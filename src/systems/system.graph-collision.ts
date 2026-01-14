@@ -13,27 +13,27 @@ export const createGraphCollisionSystem = (di: IDiContainer): ISystem => {
       const player = entityStore.first(PlayerEntity);
       const physics = entityStore.first(PhysicsStateEntity);
       const graph = entityStore.first(GraphEntity);
-      
+
       if (!player || !physics || !graph) return;
-      
+
       const playerBottom = player.ctr.y + player.ctr.height;
       let isColliding = false;
-      
+
       const playerCenter = player.ctr.x + player.ctr.width /2;
       const curveY = graph.getCurveYAtX(playerCenter);
-    
+
       if (curveY !== null) {
-        // Player is colliding if their bottom edge is below the curve at this point
-        if (playerBottom > curveY) {
+        // Only check collision when player is falling or stationary (not jumping upward)
+        if (physics.velocityY >= 0 && playerBottom > curveY) {
             player.move({ x: player.ctr.x, y: curveY - player.ctr.height });
             physics.velocityY = 0;
             physics.isGrounded = true;
         }
       }
-      
+
       // Update debug bounding box visual with collision state
       player.updateDebugVisual(isColliding);
-      
+
     },
   };
 };

@@ -12,6 +12,7 @@ export class PlayerEntity extends Entity {
   private isJumping = false;
   private collisionWidth: number;
   private collisionHeight: number;
+  private readonly debugGraphics: PIXI.Graphics;
 
   constructor(animations: PlayerAnimations) {
     const container = new PIXI.Container();
@@ -39,6 +40,11 @@ export class PlayerEntity extends Entity {
     // Store collision dimensions based on running sprite (consistent hitbox)
     this.collisionWidth = this.runningSprite.width * 0.1;
     this.collisionHeight = this.runningSprite.height * 0.1;
+
+    // Create debug graphics for bounding box
+    this.debugGraphics = new PIXI.Graphics();
+    this.ctr.addChild(this.debugGraphics);
+    this.updateBoundingBoxVisual();
   }
 
   // Override rect to use consistent collision dimensions
@@ -86,5 +92,23 @@ export class PlayerEntity extends Entity {
       this.runningSprite.visible = true;
       this.runningSprite.play();
     }
+  }
+
+  private updateBoundingBoxVisual(isColliding: boolean = false): void {
+    this.debugGraphics.clear();
+    
+    // Draw bounding box outline using collision dimensions
+    // Position is relative to the container
+    const x = -this.collisionWidth / 2;
+    const y = -this.collisionHeight;
+    this.debugGraphics.rect(x, y, this.collisionWidth, this.collisionHeight);
+    
+    // Blue when colliding, black when not colliding
+    const color = isColliding ? 0x0000ff : 0x000000;
+    this.debugGraphics.stroke({ color, width: 2 });
+  }
+
+  public updateDebugVisual(isColliding: boolean = false): void {
+    this.updateBoundingBoxVisual(isColliding);
   }
 }

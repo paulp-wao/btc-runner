@@ -1,5 +1,6 @@
 import { BackgroundEntity } from '~/entity/entity.background';
 import { CameraEntity } from '~/entity/entity.camera';
+import { GraphEntity } from '~/entity/entity.graph';
 import { PhysicsStateEntity } from '~/entity/entity.physics-state';
 import { PlatformEntity } from '~/entity/entity.platform';
 import { PlayerEntity } from '~/entity/entity.player';
@@ -9,6 +10,8 @@ import {
   createCameraUpdateSystem,
   createCamFollowPlayerSystem,
   createGravitySystem,
+  createGraphCollisionSystem,
+  createGraphUpdateSystem,
   createJumpSystem,
   createPlatformCollisionSystem,
   createPlayerAnimationSystem,
@@ -77,13 +80,23 @@ export const simpleScene = (di: IDiContainer): IScene => {
       platform4.setPosition(100, 100);
 
       const physics = new PhysicsStateEntity();
-
+      
+      const graph = new GraphEntity({
+        width: gameConstants.virtualGameWidth,
+        height: gameConstants.virtualGameHeight,
+        maxPoints: 150,
+        color: 0x00ff00,
+        lineWidth: 2,
+      });
+      graph.move({ x: 0, y: 0 });
+      
       entityStore.add(camera);
       entityStore.add(background);
-      entityStore.add(platform1, platform2, platform3, platform4);
+      //entityStore.add(platform1, platform2, platform3, platform4);
       entityStore.add(player);
       entityStore.add(physics);
       entityStore.add(playerSpawn);
+      entityStore.add(graph);
 
       systemAgg.add(
         createPlayerMovementSystem(di),
@@ -91,9 +104,11 @@ export const simpleScene = (di: IDiContainer): IScene => {
         createGravitySystem(di),
         createPlatformCollisionSystem(di),
         createPlayerAnimationSystem(di),
+        createGraphCollisionSystem(di),
         createBoundaryResetSystem(di),
         createCamFollowPlayerSystem(di),
         createCameraUpdateSystem(di),
+        createGraphUpdateSystem(di),
       );
     },
 

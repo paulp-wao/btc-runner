@@ -54,10 +54,10 @@ export const simpleScene = (di: IDiContainer): IScene => {
 
       // Jumping egg sheet: 4 frames horizontal
       const jumpingEggSprite = assetLoader.createAnimatedSprite('jumping_egg', {
-        frames: 4,
-        frameWidth: 245,  // Adjust to actual frame width
+        frames: 2,
+        frameWidth: 233.25,  // Adjust to actual frame width
         frameHeight: 400, // Adjust to actual frame height
-        animationSpeed: 0.15,
+        animationSpeed: 0.25,
       });
 
       const player = new PlayerEntity({

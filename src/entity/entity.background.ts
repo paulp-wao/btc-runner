@@ -121,6 +121,6 @@ export class BackgroundEntity extends Entity {
     const currentX = this.ctr.position.x;
     // Start at -maxOffset (green visible at bottom), move to 0 (black visible at top)
     // As gradient moves up (y increases from negative to 0), black from top appears to fall down
-    this.ctr.position.set(currentX, -maxOffset * (1 - progress));
+    this.ctr.position.set(currentX, -maxOffset * (1.1 - progress));
   }
 }

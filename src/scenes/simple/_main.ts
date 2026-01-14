@@ -37,7 +37,7 @@ export const simpleScene = (di: IDiContainer): IScene => {
 
       const background = new BackgroundEntity({
         width: gameConstants.virtualGameWidth * 3, // 3x width to cover camera movement
-        height: gameConstants.virtualGameHeight * 10, // 10x the canvas height
+        height: gameConstants.virtualGameHeight * 15, // 10x the canvas height
         useGradient: true,
         canvasHeight: gameConstants.virtualGameHeight,
       });
@@ -104,11 +104,11 @@ export const simpleScene = (di: IDiContainer): IScene => {
 
 
       systemAgg.add(
-        //createPlayerMovementSystem(di),
+        createPlayerMovementSystem(di),
         createJumpSystem(di),
-        //createGravitySystem(di),
+        createGravitySystem(di),
         createPlayerAnimationSystem(di),
-        //createGraphCollisionSystem(di),
+        createGraphCollisionSystem(di),
         createBoundaryResetSystem(di),
         createCamFollowPlayerSystem(di),
         createCameraUpdateSystem(di),

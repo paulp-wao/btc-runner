@@ -36,14 +36,14 @@ export const simpleScene = (di: IDiContainer): IScene => {
       await assetLoader.preload('running_egg', 'jumping_egg');
 
       const background = new BackgroundEntity({
-        width: gameConstants.virtualGameWidth,
+        width: gameConstants.virtualGameWidth * 3, // 3x width to cover camera movement
         height: gameConstants.virtualGameHeight * 10, // 10x the canvas height
         useGradient: true,
         canvasHeight: gameConstants.virtualGameHeight,
       });
 
-      // Initialize to show bottom (green) - progress 0
-      background.move({ x: 0, y: 0 });
+      // Position to cover full visible area (start at negative x to cover left side when camera moves)
+      background.move({ x: -gameConstants.virtualGameWidth, y: 0 });
       background.updateScrollProgress(0);
 
       const playerSpawn = new PlayerSpawnEntity({ x: 50, y: 232 });

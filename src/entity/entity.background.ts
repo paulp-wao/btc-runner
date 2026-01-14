@@ -23,6 +23,7 @@ export class BackgroundEntity extends Entity {
 
     if (useGradient) {
       this.drawGradient();
+      this.drawStars();
     } else {
       graphics.rect(0, 0, width, height).fill({ color });
     }
@@ -61,6 +62,43 @@ export class BackgroundEntity extends Entity {
     }
   }
 
+  private drawStars(): void {
+    // Create a seeded random number generator for consistent star placement
+    let seed = 12345;
+    const random = () => {
+      seed = (seed * 9301 + 49297) % 233280;
+      return seed / 233280;
+    };
+
+    // Star density increases from bottom (0) to top (1)
+    // Bottom: very few stars, Top: many stars
+    const totalStars = Math.floor(this.width * this.height / 800); // Adjust density as needed
+    
+    for (let i = 0; i < totalStars; i++) {
+      const x = random() * this.width;
+      const y = random() * this.height;
+      const progress = y / this.height; // 0 at bottom, 1 at top
+      
+      // Only draw stars in darker areas (more stars as we go up)
+      // Start showing stars around 30% up, increase density toward top
+      const starProbability = Math.max(0, (progress - 0.3) / 0.7); // 0 at 30%, 1 at 100%
+      
+      if (random() < starProbability) {
+        // Star size varies slightly
+        const starSize = 0.5 + random() * 1.5;
+        
+        // Star brightness varies - brighter in darker areas
+        const brightness = 0.6 + starProbability * 0.4; // 60% to 100% brightness
+        
+        // Draw star as a small circle
+        const starColor = Math.floor(255 * brightness);
+        const color = (starColor << 16) | (starColor << 8) | starColor;
+        
+        this.graphics.circle(x, y, starSize).fill({ color });
+      }
+    }
+  }
+
   public move(point: { x: number; y: number }): void {
     this.ctr.position.set(point.x, point.y);
   }
@@ -72,8 +110,9 @@ export class BackgroundEntity extends Entity {
     // and at progress 1, we see the top (black)
     // At progress 0: position.y = -(gradientHeight - canvasHeight) = -9 * canvasHeight
     // At progress 1: position.y = 0
-    // Always keep x at 0 to cover full canvas width
+    // Preserve x position to maintain full canvas width coverage
     const maxOffset = this.height - this.canvasHeight;
-    this.ctr.position.set(0, -progress * maxOffset);
+    const currentX = this.ctr.position.x;
+    this.ctr.position.set(currentX, -progress * maxOffset);
   }
 }

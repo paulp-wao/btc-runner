@@ -4,6 +4,7 @@ import { Entity } from '../ecs/entity';
 export class GraphEntity extends Entity {
   private readonly graphics: PIXI.Graphics;
   private readonly dotGraphics: PIXI.Graphics;
+  private readonly lineToPlayerGraphics: PIXI.Graphics;
   private readonly valueText: PIXI.Text;
   private readonly color: number;
   private readonly lineWidth: number;
@@ -27,13 +28,14 @@ export class GraphEntity extends Entity {
       width: _width,
       height: _height,
       maxPoints: _maxPoints = 100,
-      color = 0x00ff00,
+      color = 0xf7931a,
       lineWidth = 2,
       pointSpacing = 3,
       framesPerPoint = 3,
     } = props;
     const graphics = new PIXI.Graphics();
     const dotGraphics = new PIXI.Graphics();
+    const lineToPlayerGraphics = new PIXI.Graphics();
     const valueText = new PIXI.Text({
       text: '',
       style: {
@@ -47,12 +49,14 @@ export class GraphEntity extends Entity {
     valueText.resolution = 3;
     const container = new PIXI.Container();
     container.addChild(graphics);
+    container.addChild(lineToPlayerGraphics);
     container.addChild(dotGraphics);
     container.addChild(valueText);
     super(container);
 
     this.graphics = graphics;
     this.dotGraphics = dotGraphics;
+    this.lineToPlayerGraphics = lineToPlayerGraphics;
     this.valueText = valueText;
     this.color = color;
     this.lineWidth = lineWidth;
@@ -60,9 +64,9 @@ export class GraphEntity extends Entity {
     this.framesPerPoint = framesPerPoint;
     this.ticks = 0;
 
-    // Initialize dot (hidden initially)
-    this.dotGraphics.circle(0, 0, 3);
-    this.dotGraphics.fill({ color: 0x000000 });
+    // Initialize dot (hidden initially) - Bitcoin orange color
+    this.dotGraphics.circle(0, 0, 6);
+    this.dotGraphics.fill({ color: 0xf7931a });
     this.dotGraphics.visible = false;
     this.valueText.visible = false;
 
@@ -281,7 +285,7 @@ export class GraphEntity extends Entity {
     return dx !== 0 ? dy / dx : 0;
   }
 
-   /*
+  /**
    * Updates the position of the black dot on the graph based on the character's position.
    * @param worldX The x coordinate of the character in world coordinates
    * @param worldY The y coordinate of the character in world coordinates
@@ -290,34 +294,52 @@ export class GraphEntity extends Entity {
     // Convert world X to graph's local X coordinate
     const localX = worldX - this.ctr.x;
     const y = this.getYAtX(localX);
-    
+
     // Check if we're past the end of the graph (getYAtX returns 0 when past the end)
     const pointIndex = (localX + this.getOffset()) / this.pointSpacing;
     const isPastGraph = pointIndex >= this.dataPoints.length - 1;
-    
+
     if (y !== null && !isPastGraph) {
       // We're still on the graph - show dot and update value
       this.lastValidY = y;
       this.moonValue = Math.abs(y * 2031.57);
-      
+
       // Set dot position in local coordinates (relative to graph container)
       this.dotGraphics.position.set(localX, y);
       this.dotGraphics.visible = true;
+
+      // Position text above the character (convert world Y to local)
+      const localY = worldY - this.ctr.y;
+
+      // Draw dotted line from orange dot to player center (offset up by ~half player height)
+      const playerCenterY = localY - 20;
+      this.lineToPlayerGraphics.clear();
+      const dashLength = 4;
+      const gapLength = 4;
+      const startY = Math.min(y, playerCenterY);
+      const endY = Math.max(y, playerCenterY);
+      let currentY = startY;
+      while (currentY < endY) {
+        const dashEnd = Math.min(currentY + dashLength, endY);
+        this.lineToPlayerGraphics.moveTo(localX, currentY);
+        this.lineToPlayerGraphics.lineTo(localX, dashEnd);
+        currentY = dashEnd + gapLength;
+      }
+      this.lineToPlayerGraphics.stroke({ color: 0xcccccc, width: 2, alpha: 0.5 });
+      this.lineToPlayerGraphics.visible = true;
 
       // Calculate and display the value: |Y * 2031.57|
       const value = this.moonValue;
       // Format the value with commas and 2 decimal places
       const formattedValue = `+$${value.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
       this.valueText.text = formattedValue;
-      
-      // Position text above the character (convert world Y to local)
-      const localY = worldY - this.ctr.y;
       this.valueText.position.set(localX, localY - 40);
       this.valueText.visible = true;
     } else {
-      // We're past the graph (on the moon) - hide dot, keep text following character
+      // We're past the graph (on the moon) - hide dot and line, keep text following character
       this.dotGraphics.visible = false;
-      
+      this.lineToPlayerGraphics.visible = false;
+
       // Keep incrementing the value
       if (this.moonValue > 0) {
         this.moonValue += 2031.57;
@@ -327,15 +349,20 @@ export class GraphEntity extends Entity {
       } else {
         this.moonValue = 2031.57;
       }
-      
+
       // Format the value with commas and 2 decimal places
       const formattedValue = `+$${this.moonValue.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
       this.valueText.text = formattedValue;
-      
+
       // Position text above the character (convert world coordinates to local)
       const localY = worldY - this.ctr.y;
       this.valueText.position.set(localX, localY - 40);
       this.valueText.visible = true;
     }
+  }
+
+  public reset(): void {
+    this.ticks = 0;
+    this.redraw();
   }
 }

@@ -15,6 +15,7 @@ export interface IDiContainer {
   gameRef: () => PIXI.Container;
   sceneEngine: () => ISceneEngine;
   systemAgg: () => ISystemAgg;
+  resetScene: () => void;
 }
 
 const diContainer = (): IDiContainer => {
@@ -64,9 +65,16 @@ const diContainer = (): IDiContainer => {
     return _gameRef;
   };
 
+  const resetScene = () => {
+    // Clear cached instances so they get recreated on next access
+    // Note: don't reset _gameRef as the scene engine holds a reference to it
+    _entityStore = undefined;
+    _systemAgg = undefined;
+  };
+
   const sceneEngine = () => {
     if (!_sceneEngine) {
-      _sceneEngine = createSceneEngine(gameRef());
+      _sceneEngine = createSceneEngine(gameRef(), resetScene);
     }
     return _sceneEngine;
   };
@@ -87,6 +95,7 @@ const diContainer = (): IDiContainer => {
     gameRef,
     sceneEngine,
     systemAgg,
+    resetScene,
   };
 };
 

@@ -109,6 +109,10 @@ export class PlayerEntity extends Entity {
     }
   }
 
+  public getIsCelebrating(): boolean {
+    return this.isCelebrating;
+  }
+
   public setCelebrating(celebrating: boolean): void {
     if (this.isCelebrating === celebrating) return;
 
@@ -166,5 +170,21 @@ export class PlayerEntity extends Entity {
    */
   public getTopY(): number {
     return this.ctr.y - this.collisionHeight;
+  }
+
+  public stopAnimation(): void {
+    this.runningSprite.stop();
+    this.jumpingSprite.stop();
+    this.celebratingSprite.stop();
+  }
+
+  public resumeAnimation(): void {
+    if (this.isCelebrating) {
+      this.celebratingSprite.play();
+    } else if (this.isJumping) {
+      this.jumpingSprite.play();
+    } else {
+      this.runningSprite.play();
+    }
   }
 }

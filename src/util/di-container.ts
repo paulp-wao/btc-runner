@@ -59,6 +59,7 @@ const diContainer = (): IDiContainer => {
   const gameRef = () => {
     if (!_gameRef) {
       _gameRef = new PIXI.Container();
+      _gameRef.sortableChildren = true;
     }
     return _gameRef;
   };

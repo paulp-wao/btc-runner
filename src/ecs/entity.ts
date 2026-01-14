@@ -23,4 +23,8 @@ export class Entity {
     this.id = crypto.randomUUID().replaceAll('-', '').slice(0, 15);
     this.id = `_${this.id}`;
   }
+
+  public setZIndex(zIndex: number): void {
+    this.ctr.zIndex = zIndex;
+  }
 }

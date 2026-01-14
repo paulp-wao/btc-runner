@@ -1,17 +1,19 @@
 import * as PIXI from 'pixi.js';
 import bunny_url from '../assets/images/bunny.png';
-import running_egg_url from '../assets/images/running-egg-sheet.png';
-import jumping_egg_url from '../assets/images/jumping-egg-sheet.png';
 import celebration_egg_url from '../assets/images/celebration-egg-sheet.png';
+import jumping_egg_url from '../assets/images/jumping-egg-sheet.png';
+import moon_url from '../assets/images/moon-image.png';
+import running_egg_url from '../assets/images/running-egg-sheet.png';
 
 const assetMap = {
   bunny: bunny_url,
   running_egg: running_egg_url,
   jumping_egg: jumping_egg_url,
   celebration_egg: celebration_egg_url,
+  moon: moon_url,
 };
 
-export const assetFilePath = ['bunny', 'running_egg', 'jumping_egg', 'celebration_egg'] as const;
+export const assetFilePath = ['bunny', 'running_egg', 'jumping_egg', 'celebration_egg', 'moon'] as const;
 export type AssetName = (typeof assetFilePath)[number];
 
 const assertNoMissingAssetName = () => {

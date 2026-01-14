@@ -1,6 +1,5 @@
-import { Mesh, MeshGeometry, Shader, Container, Rectangle, UniformGroup } from 'pixi.js';
+import { Container, Mesh, MeshGeometry, Shader, UniformGroup } from 'pixi.js';
 import { Entity } from '~/ecs/entity';
-import type { IDiContainer } from '~/util/di-container';
 
 export class SimpleMeshEntity extends Entity {
   private time = 0;
@@ -226,10 +225,9 @@ export class SimpleMeshEntity extends Entity {
 
     // Use onRender for animation
     let time = 0;
-    const self = this;
     container.onRender = () => {
       time += 0.016;
-      self.uniformGroup.uniforms.uTime = time;
+      this.uniformGroup.uniforms.uTime = time;
     };
   }
 

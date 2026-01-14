@@ -4,6 +4,7 @@ import { Entity } from '../ecs/entity';
 export class PhysicsStateEntity extends Entity {
   public velocityY = 0;
   public isGrounded = false;
+  public gameWon = false;
 
   constructor() {
     const ctr = new PIXI.Container();

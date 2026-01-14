@@ -5,7 +5,6 @@ export class BackgroundEntity extends Entity {
   private readonly graphics: PIXI.Graphics;
   private readonly width: number;
   private readonly height: number;
-  private readonly isGradient: boolean;
   private readonly canvasHeight: number;
 
   constructor(props: { width: number; height: number; color?: number; useGradient?: boolean; canvasHeight?: number }) {
@@ -16,7 +15,6 @@ export class BackgroundEntity extends Entity {
     this.graphics = graphics;
     this.width = width;
     this.height = height;
-    this.isGradient = useGradient;
     // If gradient is used and height is 10x canvas, calculate canvas height
     // Otherwise use provided canvasHeight or default to height
     this.canvasHeight = canvasHeight || (useGradient ? height / 10 : height);
@@ -31,7 +29,7 @@ export class BackgroundEntity extends Entity {
 
   private drawGradient(): void {
     this.graphics.clear();
-    
+
     // Create gradient from Green (bottom) -> Blue (middle) -> Black (top)
     // Using multiple rectangles to simulate gradient
     // In PIXI, y=0 is at top, so we draw from bottom to top
@@ -40,11 +38,11 @@ export class BackgroundEntity extends Entity {
 
     for (let i = 0; i < steps; i++) {
       // Draw from bottom (y = height) to top (y = 0)
-      const y = this.height - (i * stepHeight);
+      const y = this.height - i * stepHeight;
       const progress = i / (steps - 1); // 0 at bottom (green), 1 at top (black)
-      
+
       let r: number, g: number, b: number;
-      
+
       if (progress < 0.5) {
         // Green to Blue (0 to 0.5)
         const localProgress = progress * 2; // 0 to 1
@@ -58,7 +56,7 @@ export class BackgroundEntity extends Entity {
         g = Math.round(102 * (1 - localProgress) + 0 * localProgress);
         b = Math.round(255 * (1 - localProgress) + 0 * localProgress);
       }
-      
+
       const color = (r << 16) | (g << 8) | b;
       this.graphics.rect(0, y, this.width, stepHeight + 1).fill({ color });
     }
@@ -75,29 +73,29 @@ export class BackgroundEntity extends Entity {
     // Star density increases from bottom (green) to top (black)
     // Since gradient is reversed: y=0 is black (top), y=height is green (bottom)
     // Bottom: very few stars, Top: many stars
-    const totalStars = Math.floor(this.width * this.height / 800); // Adjust density as needed
-    
+    const totalStars = Math.floor((this.width * this.height) / 800); // Adjust density as needed
+
     for (let i = 0; i < totalStars; i++) {
       const x = random() * this.width;
       const y = random() * this.height;
       // Reverse progress: y=0 (top/black) should have progress=1, y=height (bottom/green) should have progress=0
-      const progress = 1 - (y / this.height); // 1 at top (black), 0 at bottom (green)
-      
+      const progress = 1 - y / this.height; // 1 at top (black), 0 at bottom (green)
+
       // Only draw stars in darker areas (more stars at top where black is)
       // Start showing stars around 30% from bottom, increase density toward top
       const starProbability = Math.max(0, (progress - 0.3) / 0.7); // 0 at 30%, 1 at 100%
-      
+
       if (random() < starProbability) {
         // Star size varies slightly
         const starSize = 0.5 + random() * 1.5;
-        
+
         // Star brightness varies - brighter in darker areas
         const brightness = 0.6 + starProbability * 0.4; // 60% to 100% brightness
-        
+
         // Draw star as a small circle
         const starColor = Math.floor(255 * brightness);
         const color = (starColor << 16) | (starColor << 8) | starColor;
-        
+
         this.graphics.circle(x, y, starSize).fill({ color });
       }
     }

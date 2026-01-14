@@ -27,17 +27,15 @@ export const createGraphCollisionSystem = (di: IDiContainer): ISystem => {
       if (curveY !== null) {
         // Only check collision when player is falling or stationary (not jumping upward)
         if (physics.velocityY >= 0 && playerBottom >= curveY) {
-            isColliding = true;
-            player.move({ x: player.ctr.x, y: curveY });
-            physics.velocityY = 0;
-            physics.isGrounded = true;
+          isColliding = true;
+          player.move({ x: player.ctr.x, y: curveY });
+          physics.velocityY = 0;
+          physics.isGrounded = true;
         }
       }
 
       // Update debug bounding box visual with collision state
       player.updateDebugVisual(isColliding);
-
     },
   };
 };
-

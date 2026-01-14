@@ -1,19 +1,20 @@
 import { BackgroundEntity } from '~/entity/entity.background';
 import { CameraEntity } from '~/entity/entity.camera';
 import { GraphEntity } from '~/entity/entity.graph';
+import { MoonEntity } from '~/entity/entity.moon';
 import { PhysicsStateEntity } from '~/entity/entity.physics-state';
 import { PlatformEntity } from '~/entity/entity.platform';
 import { PlayerEntity } from '~/entity/entity.player';
 import { PlayerSpawnEntity } from '~/entity/entity.player-spawn';
 import {
-  createBoundaryResetSystem,
   createCameraUpdateSystem,
   createCamFollowPlayerSystem,
-  createGravitySystem,
   createGraphCollisionSystem,
   createGraphUpdateSystem,
+  createGravitySystem,
   createJumpSystem,
-  createPlatformCollisionSystem,
+  createMoonCollisionSystem,
+  createMoonUpdateSystem,
   createPlayerAnimationSystem,
   createPlayerMovementSystem,
 } from '~/systems';
@@ -32,7 +33,7 @@ export const simpleScene = (di: IDiContainer): IScene => {
     load: async () => {
       const camera = new CameraEntity({ appRef, gameRef, gameConstants });
 
-      await assetLoader.preload('running_egg', 'jumping_egg', 'celebration_egg');
+      await assetLoader.preload('running_egg', 'jumping_egg', 'celebration_egg', 'moon');
 
       const background = new BackgroundEntity({
         width: gameConstants.virtualGameWidth * 3, // 3x width to cover camera movement
@@ -50,7 +51,7 @@ export const simpleScene = (di: IDiContainer): IScene => {
       // Running egg sheet: 3 frames horizontal
       const runningEggSprite = assetLoader.createAnimatedSprite('running_egg', {
         frames: 3,
-        frameWidth: 237,  // Adjust to actual frame width
+        frameWidth: 237, // Adjust to actual frame width
         frameHeight: 269, // Adjust to actual frame height
         animationSpeed: 0.15,
       });
@@ -58,7 +59,7 @@ export const simpleScene = (di: IDiContainer): IScene => {
       // Jumping egg sheet: 4 frames horizontal
       const jumpingEggSprite = assetLoader.createAnimatedSprite('jumping_egg', {
         frames: 2,
-        frameWidth: 233.25,  // Adjust to actual frame width
+        frameWidth: 233.25, // Adjust to actual frame width
         frameHeight: 400, // Adjust to actual frame height
         animationSpeed: 0.25,
       });
@@ -66,7 +67,7 @@ export const simpleScene = (di: IDiContainer): IScene => {
       // Celebration egg sheet: 2 frames horizontal
       const celebrationEggSprite = assetLoader.createAnimatedSprite('celebration_egg', {
         frames: 2,
-        frameWidth: 409,  // Adjust to actual frame width
+        frameWidth: 409, // Adjust to actual frame width
         frameHeight: 386, // Adjust to actual frame height
         animationSpeed: 0.1,
       });
@@ -92,7 +93,7 @@ export const simpleScene = (di: IDiContainer): IScene => {
       platform4.setPosition(100, 100);
 
       const physics = new PhysicsStateEntity();
-      
+
       const graph = new GraphEntity({
         width: gameConstants.virtualGameWidth,
         height: gameConstants.virtualGameHeight,
@@ -101,7 +102,18 @@ export const simpleScene = (di: IDiContainer): IScene => {
         lineWidth: 2,
       });
       graph.move({ x: 0, y: 0 });
-      
+
+      // Create moon at the end of the graph, offset so player needs to jump to reach it
+      const moonTexture = assetLoader.getTexture('moon');
+      const moon = new MoonEntity(moonTexture);
+      const graphEndPoint = graph.getEndPoint();
+      moon.move({ x: graphEndPoint.x + 50, y: graphEndPoint.y - 80 });
+      moon.setScale(0.3);
+      moon.setZIndex(10);
+
+      // Set player z-index higher than moon so player renders on top
+      player.setZIndex(20);
+
       entityStore.add(camera);
       entityStore.add(background);
       //entityStore.add(platform1, platform2, platform3, platform4);
@@ -109,7 +121,7 @@ export const simpleScene = (di: IDiContainer): IScene => {
       entityStore.add(physics);
       entityStore.add(playerSpawn);
       entityStore.add(graph);
-
+      entityStore.add(moon);
 
       systemAgg.add(
         createPlayerMovementSystem(di),
@@ -117,6 +129,8 @@ export const simpleScene = (di: IDiContainer): IScene => {
         createGravitySystem(di),
         createPlayerAnimationSystem(di),
         createGraphCollisionSystem(di),
+        createMoonCollisionSystem(di),
+        createMoonUpdateSystem(di),
         //createBoundaryResetSystem(di),
         createCamFollowPlayerSystem(di),
         createCameraUpdateSystem(di),

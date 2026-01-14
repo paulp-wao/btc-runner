@@ -1,11 +1,13 @@
 export { createBoundaryResetSystem } from './system.boundary-reset';
 export { createCamFollowPlayerSystem } from './system.cam-follow-player';
 export { createCameraUpdateSystem } from './system.camera-update';
-export { createGravitySystem } from './system.gravity';
 export { createGraphCollisionSystem } from './system.graph-collision';
 export { createGraphUpdateSystem } from './system.graph-update';
+export { createGravitySystem } from './system.gravity';
 export { createJumpSystem } from './system.jump';
+export { createMeshUpdateSystem } from './system.mesh-update';
+export { createMoonCollisionSystem } from './system.moon-collision';
+export { createMoonUpdateSystem } from './system.moon-update';
 export { createPlatformCollisionSystem } from './system.platform-collision';
 export { createPlayerAnimationSystem } from './system.player-animation';
-export { createMeshUpdateSystem } from './system.mesh-update';
 export { createPlayerMovementSystem } from './system.player-movement';

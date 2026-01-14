@@ -19,4 +19,3 @@ export const createPlayerAnimationSystem = (di: IDiContainer): ISystem => {
     },
   };
 };
-

@@ -4,4 +4,5 @@ export { createCameraUpdateSystem } from './system.camera-update';
 export { createGravitySystem } from './system.gravity';
 export { createJumpSystem } from './system.jump';
 export { createPlatformCollisionSystem } from './system.platform-collision';
+export { createPlayerAnimationSystem } from './system.player-animation';
 export { createPlayerMovementSystem } from './system.player-movement';

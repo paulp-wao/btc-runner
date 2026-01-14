@@ -11,6 +11,7 @@ import {
   createGravitySystem,
   createJumpSystem,
   createPlatformCollisionSystem,
+  createPlayerAnimationSystem,
   createPlayerMovementSystem,
 } from '~/systems';
 import type { IDiContainer } from '~/util/di-container';
@@ -28,7 +29,7 @@ export const simpleScene = (di: IDiContainer): IScene => {
     load: async () => {
       const camera = new CameraEntity({ appRef, gameRef, gameConstants });
 
-      await assetLoader.preload('bunny');
+      await assetLoader.preload('running_egg', 'jumping_egg');
 
       const background = new BackgroundEntity({
         width: gameConstants.virtualGameWidth * 0.85,
@@ -40,8 +41,26 @@ export const simpleScene = (di: IDiContainer): IScene => {
 
       const playerSpawn = new PlayerSpawnEntity({ x: 50, y: 232 });
 
-      const bunnySprite = assetLoader.createSprite('bunny');
-      const player = new PlayerEntity(bunnySprite);
+      // Running egg sheet: 3 frames horizontal
+      const runningEggSprite = assetLoader.createAnimatedSprite('running_egg', {
+        frames: 3,
+        frameWidth: 237,  // Adjust to actual frame width
+        frameHeight: 269, // Adjust to actual frame height
+        animationSpeed: 0.15,
+      });
+
+      // Jumping egg sheet: 4 frames horizontal
+      const jumpingEggSprite = assetLoader.createAnimatedSprite('jumping_egg', {
+        frames: 4,
+        frameWidth: 245,  // Adjust to actual frame width
+        frameHeight: 400, // Adjust to actual frame height
+        animationSpeed: 0.15,
+      });
+
+      const player = new PlayerEntity({
+        running: runningEggSprite,
+        jumping: jumpingEggSprite,
+      });
 
       player.move({ x: playerSpawn.spawnX, y: playerSpawn.spawnY });
 
@@ -71,6 +90,7 @@ export const simpleScene = (di: IDiContainer): IScene => {
         createJumpSystem(di),
         createGravitySystem(di),
         createPlatformCollisionSystem(di),
+        createPlayerAnimationSystem(di),
         createBoundaryResetSystem(di),
         createCamFollowPlayerSystem(di),
         createCameraUpdateSystem(di),

@@ -1,11 +1,15 @@
 import * as PIXI from 'pixi.js';
 import bunny_url from '../assets/images/bunny.png';
+import running_egg_url from '../assets/images/running-egg-sheet.png';
+import jumping_egg_url from '../assets/images/jumping-egg-sheet.png';
 
 const assetMap = {
   bunny: bunny_url,
+  running_egg: running_egg_url,
+  jumping_egg: jumping_egg_url,
 };
 
-export const assetFilePath = ['bunny'] as const;
+export const assetFilePath = ['bunny', 'running_egg', 'jumping_egg'] as const;
 export type AssetName = (typeof assetFilePath)[number];
 
 const assertNoMissingAssetName = () => {
@@ -17,8 +21,16 @@ const assertNoMissingAssetName = () => {
   }
 };
 
+export interface AnimatedSpriteOptions {
+  frames: number;
+  frameWidth: number;
+  frameHeight: number;
+  animationSpeed?: number;
+}
+
 export interface IAssetLoader {
   createSprite: (name: AssetName) => PIXI.Sprite;
+  createAnimatedSprite: (name: AssetName, options: AnimatedSpriteOptions) => PIXI.AnimatedSprite;
   preload: (...names: AssetName[]) => Promise<void>;
   getTexture: (name: AssetName) => PIXI.Texture;
 }
@@ -33,6 +45,26 @@ export const createAssetLoader = (): IAssetLoader => {
       if (!texture) throw new Error(`asset was not preloaded: "${name}"`);
       const result = new PIXI.Sprite(texture);
       return result;
+    },
+    createAnimatedSprite: (name: AssetName, options: AnimatedSpriteOptions) => {
+      const texture = textures[name];
+      if (!texture) throw new Error(`asset was not preloaded: "${name}"`);
+
+      const { frames, frameWidth, frameHeight, animationSpeed = 0.15 } = options;
+
+      const frameTextures = Array.from({ length: frames }, (_, i) => {
+        const t = new PIXI.Texture({
+          source: texture.source,
+          frame: new PIXI.Rectangle(frameWidth * i, 0, frameWidth, frameHeight),
+        });
+        t.source.scaleMode = 'nearest';
+        return t;
+      });
+
+      const animatedSprite = new PIXI.AnimatedSprite(frameTextures);
+      animatedSprite.animationSpeed = animationSpeed;
+
+      return animatedSprite;
     },
     getTexture: (name: AssetName) => {
       const result = textures[name];

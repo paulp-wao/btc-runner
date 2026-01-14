@@ -19,11 +19,14 @@ export const createPlatformCollisionSystem = (di: IDiContainer): ISystem => {
 
       physics.isGrounded = false;
 
+      // Use player.rect for consistent collision bounds
+      const playerRect = player.rect;
+
       for (const platform of platforms) {
-        const playerTop = player.ctr.y;
-        const playerBottom = player.ctr.y + player.ctr.height;
-        const playerLeft = player.ctr.x;
-        const playerRight = player.ctr.x + player.ctr.width;
+        const playerTop = playerRect.y;
+        const playerBottom = playerRect.y + playerRect.height;
+        const playerLeft = playerRect.x;
+        const playerRight = playerRect.x + playerRect.width;
 
         const platTop = platform.ctr.y;
         const platBottom = platform.ctr.y + platform.ctr.height;
@@ -46,20 +49,20 @@ export const createPlatformCollisionSystem = (di: IDiContainer): ISystem => {
         const minOverlap = Math.min(overlapTop, overlapBottom, overlapLeft, overlapRight);
 
         if (minOverlap === overlapTop && physics.velocityY >= 0) {
-          // Landing on top of platform
-          player.move(new PIXI.Point(player.ctr.x, platTop - player.ctr.height));
+          // Landing on top of platform (ctr.y is feet position with bottom anchor)
+          player.move(new PIXI.Point(player.ctr.x, platTop));
           physics.velocityY = 0;
           physics.isGrounded = true;
         } else if (minOverlap === overlapBottom && physics.velocityY < 0) {
           // Hitting bottom of platform (head bump)
-          player.move(new PIXI.Point(player.ctr.x, platBottom));
+          player.move(new PIXI.Point(player.ctr.x, platBottom + playerRect.height));
           physics.velocityY = 0;
         } else if (minOverlap === overlapLeft) {
           // Hitting left side of platform (player coming from left)
-          player.move(new PIXI.Point(platLeft - player.ctr.width, player.ctr.y));
+          player.move(new PIXI.Point(platLeft - playerRect.width / 2, player.ctr.y));
         } else if (minOverlap === overlapRight) {
           // Hitting right side of platform (player coming from right)
-          player.move(new PIXI.Point(platRight, player.ctr.y));
+          player.move(new PIXI.Point(platRight + playerRect.width / 2, player.ctr.y));
         }
       }
     },

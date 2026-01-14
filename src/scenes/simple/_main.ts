@@ -98,6 +98,7 @@ export const simpleScene = (di: IDiContainer): IScene => {
       entityStore.add(playerSpawn);
       entityStore.add(graph);
 
+
       systemAgg.add(
         //createPlayerMovementSystem(di),
         createJumpSystem(di),

@@ -7,4 +7,5 @@ export { createGraphUpdateSystem } from './system.graph-update';
 export { createJumpSystem } from './system.jump';
 export { createPlatformCollisionSystem } from './system.platform-collision';
 export { createPlayerAnimationSystem } from './system.player-animation';
+export { createMeshUpdateSystem } from './system.mesh-update';
 export { createPlayerMovementSystem } from './system.player-movement';

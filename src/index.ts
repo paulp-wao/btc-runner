@@ -7,7 +7,7 @@ export const createEngine = async (props: { canvas: HTMLCanvasElement }) => {
 
   try {
     await di.appRef().init({
-      backgroundColor: '#000000',
+      backgroundColor: '#0066ff',
       resolution: 1,
       autoDensity: true,
       antialias: true,

@@ -9,6 +9,7 @@ import {
   createBoundaryResetSystem,
   createCameraUpdateSystem,
   createCamFollowPlayerSystem,
+  createGradientScrollSystem,
   createGravitySystem,
   createGraphCollisionSystem,
   createGraphUpdateSystem,
@@ -35,12 +36,15 @@ export const simpleScene = (di: IDiContainer): IScene => {
       await assetLoader.preload('running_egg', 'jumping_egg');
 
       const background = new BackgroundEntity({
-        width: gameConstants.virtualGameWidth * 0.85,
-        height: gameConstants.virtualGameHeight * 0.85,
-        color: 0x222222,
+        width: gameConstants.virtualGameWidth * 3, // 3x width to cover camera movement
+        height: gameConstants.virtualGameHeight * 15, // 10x the canvas height
+        useGradient: true,
+        canvasHeight: gameConstants.virtualGameHeight,
       });
 
-      background.move({ x: 0, y: 0 });
+      // Position to cover full visible area (start at negative x to cover left side when camera moves)
+      background.move({ x: -gameConstants.virtualGameWidth, y: 0 });
+      background.updateScrollProgress(0);
 
       const playerSpawn = new PlayerSpawnEntity({ x: 50, y: 232 });
 
@@ -98,8 +102,9 @@ export const simpleScene = (di: IDiContainer): IScene => {
       entityStore.add(playerSpawn);
       entityStore.add(graph);
 
+
       systemAgg.add(
-        //createPlayerMovementSystem(di),
+        createPlayerMovementSystem(di),
         createJumpSystem(di),
         createGravitySystem(di),
         createPlayerAnimationSystem(di),
@@ -108,6 +113,7 @@ export const simpleScene = (di: IDiContainer): IScene => {
         createCamFollowPlayerSystem(di),
         createCameraUpdateSystem(di),
         createGraphUpdateSystem(di),
+        createGradientScrollSystem(di),
       );
     },
 

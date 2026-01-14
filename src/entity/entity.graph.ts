@@ -12,7 +12,6 @@ export class GraphEntity extends Entity {
   private pointSpacing: number;
   private framesPerPoint: number;
   private lastValidY: number | null = null;
-  private lastValidLocalX: number | null = null;
   private moonValue: number = 0;
 
   constructor(props: {
@@ -234,18 +233,22 @@ export class GraphEntity extends Entity {
   }
 
   /**
-   * Updates the position of the black dot on the graph based on the character's X position.
+   * Updates the position of the black dot on the graph based on the character's position.
    * @param worldX The x coordinate of the character in world coordinates
+   * @param worldY The y coordinate of the character in world coordinates
    */
-  public updateDotPosition(worldX: number): void {
+  public updateDotPosition(worldX: number, worldY: number): void {
     // Convert world X to graph's local X coordinate
     const localX = worldX - this.ctr.x;
     const y = this.getYAtX(localX);
     
-    if (y !== null) {
-      // We're still on the graph - update last valid position
+    // Check if we're past the end of the graph (getYAtX returns 0 when past the end)
+    const pointIndex = (localX + this.getOffset()) / this.pointSpacing;
+    const isPastGraph = pointIndex >= this.dataPoints.length - 1;
+    
+    if (y !== null && !isPastGraph) {
+      // We're still on the graph - show dot and update value
       this.lastValidY = y;
-      this.lastValidLocalX = localX;
       this.moonValue = Math.abs(y * 2031.57);
       
       // Set dot position in local coordinates (relative to graph container)
@@ -258,31 +261,32 @@ export class GraphEntity extends Entity {
       const formattedValue = `+$${value.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
       this.valueText.text = formattedValue;
       
-      // Position text underneath the dot (with some spacing)
-      this.valueText.position.set(localX, y + 8);
+      // Position text underneath the character (convert world Y to local)
+      const localY = worldY - this.ctr.y;
+      this.valueText.position.set(localX, localY + 8);
       this.valueText.visible = true;
     } else {
-      // We're past the graph (on the moon) - keep going up!
-      if (this.lastValidY !== null && this.lastValidLocalX !== null) {
-        // Keep the dot at the last valid position
-        this.dotGraphics.position.set(this.lastValidLocalX, this.lastValidY);
-        this.dotGraphics.visible = true;
-        
-        // Keep incrementing the value
+      // We're past the graph (on the moon) - hide dot, keep text following character
+      this.dotGraphics.visible = false;
+      
+      // Keep incrementing the value
+      if (this.moonValue > 0) {
         this.moonValue += 2031.57;
-        
-        // Format the value with commas and 2 decimal places
-        const formattedValue = `+$${this.moonValue.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-        this.valueText.text = formattedValue;
-        
-        // Position text underneath the dot (with some spacing)
-        this.valueText.position.set(this.lastValidLocalX, this.lastValidY + 8);
-        this.valueText.visible = true;
+      } else if (this.lastValidY !== null) {
+        // Initialize from last valid position if we have one
+        this.moonValue = Math.abs(this.lastValidY * 2031.57) + 2031.57;
       } else {
-        // No previous valid position yet, hide everything
-        this.dotGraphics.visible = false;
-        this.valueText.visible = false;
+        this.moonValue = 2031.57;
       }
+      
+      // Format the value with commas and 2 decimal places
+      const formattedValue = `+$${this.moonValue.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+      this.valueText.text = formattedValue;
+      
+      // Position text underneath the character (convert world coordinates to local)
+      const localY = worldY - this.ctr.y;
+      this.valueText.position.set(localX, localY + 8);
+      this.valueText.visible = true;
     }
   }
 }

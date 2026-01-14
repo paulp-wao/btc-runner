@@ -24,8 +24,8 @@ export const createGraphCollisionSystem = (di: IDiContainer): ISystem => {
       const playerCenter = player.ctr.x;
       const curveY = graph.getYAtX(playerCenter);
 
-      // Update the dot position on the graph
-      graph.updateDotPosition(playerCenter);
+      // Update the dot position on the graph (pass both X and Y so text can follow character)
+      graph.updateDotPosition(playerCenter, playerBottom);
 
       if (curveY !== null) {
         // Only check collision when player is falling or stationary (not jumping upward)

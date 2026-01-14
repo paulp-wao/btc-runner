@@ -29,8 +29,8 @@ export class GraphEntity extends Entity {
       maxPoints: _maxPoints = 100,
       color = 0x00ff00,
       lineWidth = 2,
-      pointSpacing = 5,
-      framesPerPoint = 5,
+      pointSpacing = 3,
+      framesPerPoint = 3,
     } = props;
     const graphics = new PIXI.Graphics();
     const dotGraphics = new PIXI.Graphics();

@@ -11,3 +11,4 @@ export { createMoonUpdateSystem } from './system.moon-update';
 export { createPlatformCollisionSystem } from './system.platform-collision';
 export { createPlayerAnimationSystem } from './system.player-animation';
 export { createPlayerMovementSystem } from './system.player-movement';
+export { createSweatDropsSystem } from './system.sweat-drops';

@@ -160,4 +160,11 @@ export class PlayerEntity extends Entity {
     this.jumpingSprite.animationSpeed = this.originalJumpingSpeed * multiplier;
     this.celebratingSprite.animationSpeed = this.originalCelebratingSpeed * multiplier;
   }
+
+  /**
+   * Gets the top Y position of the player (for spawning effects above the player)
+   */
+  public getTopY(): number {
+    return this.ctr.y - this.collisionHeight;
+  }
 }

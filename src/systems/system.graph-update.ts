@@ -1,11 +1,15 @@
 import type { ISystem } from '~/ecs/system.agg';
+import type { IEntityStore } from '~/ecs/entity.store';
 import { GraphEntity } from '~/entity/entity.graph';
 import { PhysicsStateEntity } from '~/entity/entity.physics-state';
 import { PlayerEntity } from '~/entity/entity.player';
+import { SweatDropEntity } from '~/entity/entity.sweat-drop';
 import type { IDiContainer } from '~/util/di-container';
 
 export const createGraphUpdateSystem = (di: IDiContainer): ISystem => {
   const entityStore = di.entityStore();
+  let lastSweatSpawnTime = 0;
+  const sweatSpawnInterval = 10; // Spawn sweat drops every 0.15 seconds
 
   return {
     name: () => 'graph-update-system',
@@ -41,9 +45,17 @@ export const createGraphUpdateSystem = (di: IDiContainer): ISystem => {
             speedMultiplier = 0.1;
             // Slow down player animation to half speed
             player.setAnimationSpeedMultiplier(0.5);
+
+            // Spawn sweat drops periodically
+            lastSweatSpawnTime++;
+            if (lastSweatSpawnTime >= sweatSpawnInterval) {
+              lastSweatSpawnTime = 0;
+              spawnSweatDrops(player, entityStore);
+            }
           } else {
             // Restore normal animation speed
             player.setAnimationSpeedMultiplier(1.0);
+            lastSweatSpawnTime = 0; // Reset timer when not on steep slope
           }
         } else {
           // Restore normal animation speed when not on a slope
@@ -53,6 +65,21 @@ export const createGraphUpdateSystem = (di: IDiContainer): ISystem => {
       }
       // Update scroll with speed multiplier
       graph.updateScroll(delta, speedMultiplier);
-    }
+    },
   };
 };
+
+function spawnSweatDrops(player: PlayerEntity, entityStore: IEntityStore): void {
+    // Spawn from the top of the player (head area)
+    // Player is anchored at bottom-center, so we need to offset upward
+    const spawnX = player.ctr.x + (Math.random() - 0.5) * 2; // Random horizontal spread
+    const spawnY = player.getTopY() + Math.random() * 3; // Top of player
+
+    // Random velocity - mostly upward and to the sides
+    const velocityX = -5 - Math.random() * 5;
+    const velocityY =  -5 - Math.random() * 5; // Mostly upward
+
+    const sweatDrop = new SweatDropEntity(spawnX, spawnY, velocityX, velocityY);
+    sweatDrop.setZIndex(15); // Render above graph but below player
+    entityStore.add(sweatDrop);
+}

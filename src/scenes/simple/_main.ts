@@ -17,6 +17,7 @@ import {
   createMoonUpdateSystem,
   createPlayerAnimationSystem,
   createPlayerMovementSystem,
+  createSweatDropsSystem,
 } from '~/systems';
 import type { IDiContainer } from '~/util/di-container';
 import type { IScene } from '../scene-engine';
@@ -135,6 +136,7 @@ export const simpleScene = (di: IDiContainer): IScene => {
         createCamFollowPlayerSystem(di),
         createCameraUpdateSystem(di),
         createGraphUpdateSystem(di),
+        createSweatDropsSystem(di),
       );
     },
 

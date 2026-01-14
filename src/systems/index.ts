@@ -5,4 +5,6 @@ export { createGravitySystem } from './system.gravity';
 export { createGraphCollisionSystem } from './system.graph-collision';
 export { createGraphUpdateSystem } from './system.graph-update';
 export { createJumpSystem } from './system.jump';
+export { createPlatformCollisionSystem } from './system.platform-collision';
+export { createPlayerAnimationSystem } from './system.player-animation';
 export { createPlayerMovementSystem } from './system.player-movement';

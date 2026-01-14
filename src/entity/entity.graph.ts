@@ -3,12 +3,17 @@ import { Entity } from '../ecs/entity';
 
 export class GraphEntity extends Entity {
   private readonly graphics: PIXI.Graphics;
+  private readonly dotGraphics: PIXI.Graphics;
+  private readonly valueText: PIXI.Text;
   private readonly color: number;
   private readonly lineWidth: number;
   private dataPoints: number[] = [];
   private ticks: number;
   private pointSpacing: number;
   private framesPerPoint: number;
+  private lastValidY: number | null = null;
+  private lastValidLocalX: number | null = null;
+  private moonValue: number = 0;
 
   constructor(props: {
     width: number;
@@ -29,14 +34,37 @@ export class GraphEntity extends Entity {
       framesPerPoint = 1,
     } = props;
     const graphics = new PIXI.Graphics();
-    super(graphics);
+    const dotGraphics = new PIXI.Graphics();
+    const valueText = new PIXI.Text({
+      text: '',
+      style: {
+        fontFamily: 'Arial',
+        fontSize: 16,
+        fill: 0x00ff00, // Green color
+        align: 'center',
+      },
+    });
+    valueText.anchor.set(0.5, 0); // Center horizontally, anchor at top
+    const container = new PIXI.Container();
+    container.addChild(graphics);
+    container.addChild(dotGraphics);
+    container.addChild(valueText);
+    super(container);
 
     this.graphics = graphics;
+    this.dotGraphics = dotGraphics;
+    this.valueText = valueText;
     this.color = color;
     this.lineWidth = lineWidth;
     this.pointSpacing = pointSpacing;
     this.framesPerPoint = framesPerPoint;
     this.ticks = 0;
+
+    // Initialize dot (hidden initially)
+    this.dotGraphics.circle(0, 0, 3);
+    this.dotGraphics.fill({ color: 0x000000 });
+    this.dotGraphics.visible = false;
+    this.valueText.visible = false;
 
     // Pre-populate the graph with initial data points
     this.initializeDataPoints();
@@ -203,5 +231,58 @@ export class GraphEntity extends Entity {
     const y2 = this.dataPoints[upperIndex];
 
     return y1 + (y2 - y1) * t;
+  }
+
+  /**
+   * Updates the position of the black dot on the graph based on the character's X position.
+   * @param worldX The x coordinate of the character in world coordinates
+   */
+  public updateDotPosition(worldX: number): void {
+    // Convert world X to graph's local X coordinate
+    const localX = worldX - this.ctr.x;
+    const y = this.getYAtX(localX);
+    
+    if (y !== null) {
+      // We're still on the graph - update last valid position
+      this.lastValidY = y;
+      this.lastValidLocalX = localX;
+      this.moonValue = Math.abs(y * 2031.57);
+      
+      // Set dot position in local coordinates (relative to graph container)
+      this.dotGraphics.position.set(localX, y);
+      this.dotGraphics.visible = true;
+
+      // Calculate and display the value: |Y * 2031.57|
+      const value = this.moonValue;
+      // Format the value with commas and 2 decimal places
+      const formattedValue = `+$${value.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+      this.valueText.text = formattedValue;
+      
+      // Position text underneath the dot (with some spacing)
+      this.valueText.position.set(localX, y + 8);
+      this.valueText.visible = true;
+    } else {
+      // We're past the graph (on the moon) - keep going up!
+      if (this.lastValidY !== null && this.lastValidLocalX !== null) {
+        // Keep the dot at the last valid position
+        this.dotGraphics.position.set(this.lastValidLocalX, this.lastValidY);
+        this.dotGraphics.visible = true;
+        
+        // Keep incrementing the value
+        this.moonValue += 2031.57;
+        
+        // Format the value with commas and 2 decimal places
+        const formattedValue = `+$${this.moonValue.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+        this.valueText.text = formattedValue;
+        
+        // Position text underneath the dot (with some spacing)
+        this.valueText.position.set(this.lastValidLocalX, this.lastValidY + 8);
+        this.valueText.visible = true;
+      } else {
+        // No previous valid position yet, hide everything
+        this.dotGraphics.visible = false;
+        this.valueText.visible = false;
+      }
+    }
   }
 }

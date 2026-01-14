@@ -1,6 +1,7 @@
 export { createBoundaryResetSystem } from './system.boundary-reset';
 export { createCamFollowPlayerSystem } from './system.cam-follow-player';
 export { createCameraUpdateSystem } from './system.camera-update';
+export { createCelebrationSystem } from './system.celebration';
 export { createGraphCollisionSystem } from './system.graph-collision';
 export { createGraphUpdateSystem } from './system.graph-update';
 export { createGravitySystem } from './system.gravity';

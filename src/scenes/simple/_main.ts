@@ -9,6 +9,7 @@ import { PlayerSpawnEntity } from '~/entity/entity.player-spawn';
 import {
   createCameraUpdateSystem,
   createCamFollowPlayerSystem,
+  createCelebrationSystem,
   createGraphCollisionSystem,
   createGraphUpdateSystem,
   createGravitySystem,
@@ -33,7 +34,7 @@ export const simpleScene = (di: IDiContainer): IScene => {
     load: async () => {
       const camera = new CameraEntity({ appRef, gameRef, gameConstants });
 
-      await assetLoader.preload('running_egg', 'jumping_egg', 'celebration_egg', 'moon');
+      await assetLoader.preload('running_egg', 'jumping_egg', 'celebration_egg', 'moon', 'nyan_cat');
 
       const background = new BackgroundEntity({
         width: gameConstants.virtualGameWidth * 3, // 3x width to cover camera movement
@@ -135,6 +136,7 @@ export const simpleScene = (di: IDiContainer): IScene => {
         createCamFollowPlayerSystem(di),
         createCameraUpdateSystem(di),
         createGraphUpdateSystem(di),
+        createCelebrationSystem(di),
       );
     },
 

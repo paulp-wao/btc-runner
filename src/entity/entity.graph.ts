@@ -44,6 +44,7 @@ export class GraphEntity extends Entity {
       },
     });
     valueText.anchor.set(0.5, 1); // Center horizontally, anchor at bottom
+    valueText.resolution = 3;
     const container = new PIXI.Container();
     container.addChild(graphics);
     container.addChild(dotGraphics);

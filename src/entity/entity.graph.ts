@@ -14,6 +14,7 @@ export class GraphEntity extends Entity {
   private framesPerPoint: number;
 
 
+
   constructor(props: {
     width: number;
     height: number;
@@ -42,23 +43,10 @@ export class GraphEntity extends Entity {
   }
 
   private initializeDataPoints(): void {
-    // Generate initial data points using the same sine wave formula as the update system
-    // Generate backwards in time so the last point (rightmost) is at time 0,
-    // which matches where the update system starts, ensuring smooth continuity
-    const timeStep = 0.1; // Step size for generating initial points
-    let time = -(this.maxPoints - 1) * timeStep; // Start from negative time
-    
-    for (let i = 0; i < 10; i++) {
-      const value = 
-        Math.sin(time) * 0.5 +
-        Math.sin(time * 2.3) * 0.3 +
-        Math.sin(time * 0.7) * 0.2;
-      
-      const normalizedValue = ((value + 1) / 2) * this.height;
-      this.dataPoints.push(normalizedValue);
-      
-      time += timeStep;
-    }
+      let predeterminedPoints = [0, 3, 5, 6, 3, 1, -3, -9, -20, -35, -50, -55, -56, -54, -50, -53, -59, -69, -80, -95];
+      for (let i = 0; i < predeterminedPoints.length; i++) {
+        this.dataPoints.push(predeterminedPoints[i]);
+      }
     
     // Draw the initial graph
     this.redraw();

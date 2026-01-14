@@ -16,6 +16,9 @@ export class PlayerEntity extends Entity {
   private collisionWidth: number;
   private collisionHeight: number;
   private readonly debugGraphics: PIXI.Graphics;
+  private originalRunningSpeed: number;
+  private originalJumpingSpeed: number;
+  private originalCelebratingSpeed: number;
 
   constructor(animations: PlayerAnimations) {
     const container = new PIXI.Container();
@@ -41,6 +44,11 @@ export class PlayerEntity extends Entity {
     this.jumpingSprite.visible = false;
     this.celebratingSprite.visible = false;
     this.runningSprite.play();
+
+    // Store original animation speeds
+    this.originalRunningSpeed = this.runningSprite.animationSpeed;
+    this.originalJumpingSpeed = this.jumpingSprite.animationSpeed;
+    this.originalCelebratingSpeed = this.celebratingSprite.animationSpeed;
 
     this.ctr.scale.set(0.1, 0.1);
 
@@ -141,5 +149,15 @@ export class PlayerEntity extends Entity {
 
   public updateDebugVisual(isColliding: boolean = false): void {
     this.updateBoundingBoxVisual(isColliding);
+  }
+
+  /**
+   * Sets the animation speed multiplier for all sprites.
+   * @param multiplier Speed multiplier (1.0 = normal speed, 0.5 = half speed, etc.)
+   */
+  public setAnimationSpeedMultiplier(multiplier: number): void {
+    this.runningSprite.animationSpeed = this.originalRunningSpeed * multiplier;
+    this.jumpingSprite.animationSpeed = this.originalJumpingSpeed * multiplier;
+    this.celebratingSprite.animationSpeed = this.originalCelebratingSpeed * multiplier;
   }
 }

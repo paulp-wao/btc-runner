@@ -25,8 +25,8 @@ export class GraphEntity extends Entity {
       maxPoints: _maxPoints = 100,
       color = 0x00ff00,
       lineWidth = 2,
-      pointSpacing = 1,
-      framesPerPoint = 1,
+      pointSpacing = 5,
+      framesPerPoint = 5,
     } = props;
     const graphics = new PIXI.Graphics();
     super(graphics);
@@ -118,10 +118,10 @@ export class GraphEntity extends Entity {
     // this.redraw();
   }
 
-  public updateScroll(_delta: number): void {
+  public updateScroll(_delta: number, speedMultiplier: number = 1): void {
     if (this.dataPoints.length < 2) return;
 
-    this.ticks += 1;
+    this.ticks += speedMultiplier;
 
     // Redraw to show the updated scroll position
     this.redraw();
@@ -203,5 +203,53 @@ export class GraphEntity extends Entity {
     const y2 = this.dataPoints[upperIndex];
 
     return y1 + (y2 - y1) * t;
+  }
+
+  /**
+   * Returns the slope (dy/dx) of the graph at the given x coordinate.
+   * Uses the difference between adjacent points to calculate slope.
+   * @param x The x coordinate in the graph's coordinate system
+   * @returns The slope value, or null if x is outside the graph bounds
+   */
+  public getSlopeAtX(x: number): number | null {
+    if (this.dataPoints.length < 2) {
+      return null;
+    }
+
+    // Convert x coordinate to point index accounting for scroll offset
+    const pointIndex = (x + this.getOffset()) / this.pointSpacing;
+
+    // Handle boundary cases
+    if (pointIndex < 0 || pointIndex >= this.dataPoints.length - 1) {
+      return null;
+    }
+
+    // Get the indices of the two points we're between
+    const lowerIndex = Math.floor(pointIndex);
+    const upperIndex = Math.ceil(pointIndex);
+
+    // If we're exactly on a point, use the next point for slope calculation
+    // Otherwise, use the two points we're between
+    let index1: number;
+    let index2: number;
+
+    if (lowerIndex === upperIndex) {
+      // Exactly on a point, use this point and the next
+      index1 = lowerIndex;
+      index2 = Math.min(lowerIndex + 1, this.dataPoints.length - 1);
+    } else {
+      // Between two points, use those points
+      index1 = lowerIndex;
+      index2 = upperIndex;
+    }
+
+    // Calculate slope: dy/dx
+    const y1 = this.dataPoints[index1];
+    const y2 = this.dataPoints[index2];
+    const dx = (index2 - index1) * this.pointSpacing;
+    const dy = y2 - y1;
+
+    // Return the slope (dy/dx)
+    return dx !== 0 ? dy / dx : 0;
   }
 }

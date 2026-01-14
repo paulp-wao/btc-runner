@@ -16,16 +16,19 @@ export const createGraphCollisionSystem = (di: IDiContainer): ISystem => {
 
       if (!player || !physics || !graph) return;
 
-      const playerBottom = player.ctr.y + player.ctr.height;
+      // Player sprite is anchored at bottom-center (0.5, 1), so ctr.y IS the bottom
+      const playerBottom = player.ctr.y;
       let isColliding = false;
 
-      const playerCenter = player.ctr.x + player.ctr.width /2;
+      // ctr.x IS already the center due to anchor (0.5)
+      const playerCenter = player.ctr.x;
       const curveY = graph.getCurveYAtX(playerCenter);
 
       if (curveY !== null) {
         // Only check collision when player is falling or stationary (not jumping upward)
-        if (physics.velocityY >= 0 && playerBottom > curveY) {
-            player.move({ x: player.ctr.x, y: curveY - player.ctr.height });
+        if (physics.velocityY >= 0 && playerBottom >= curveY) {
+            isColliding = true;
+            player.move({ x: player.ctr.x, y: curveY });
             physics.velocityY = 0;
             physics.isGrounded = true;
         }

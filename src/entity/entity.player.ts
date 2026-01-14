@@ -6,7 +6,7 @@ export class PlayerEntity extends Entity {
 
   constructor(sprite: PIXI.Sprite) {
     super(sprite);
-    this.ctr.scale.set(0.75, 0.75);
+    //this.ctr.scale.set(0.75, 0.75);
     
     // Create debug graphics for bounding box
     this.debugGraphics = new PIXI.Graphics();

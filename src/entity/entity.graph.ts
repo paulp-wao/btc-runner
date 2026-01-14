@@ -43,7 +43,7 @@ export class GraphEntity extends Entity {
         align: 'center',
       },
     });
-    valueText.anchor.set(0.5, 0); // Center horizontally, anchor at top
+    valueText.anchor.set(0.5, 1); // Center horizontally, anchor at bottom
     const container = new PIXI.Container();
     container.addChild(graphics);
     container.addChild(dotGraphics);
@@ -261,9 +261,9 @@ export class GraphEntity extends Entity {
       const formattedValue = `+$${value.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
       this.valueText.text = formattedValue;
       
-      // Position text underneath the character (convert world Y to local)
+      // Position text above the character (convert world Y to local)
       const localY = worldY - this.ctr.y;
-      this.valueText.position.set(localX, localY + 8);
+      this.valueText.position.set(localX, localY - 40);
       this.valueText.visible = true;
     } else {
       // We're past the graph (on the moon) - hide dot, keep text following character
@@ -283,9 +283,9 @@ export class GraphEntity extends Entity {
       const formattedValue = `+$${this.moonValue.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
       this.valueText.text = formattedValue;
       
-      // Position text underneath the character (convert world coordinates to local)
+      // Position text above the character (convert world coordinates to local)
       const localY = worldY - this.ctr.y;
-      this.valueText.position.set(localX, localY + 8);
+      this.valueText.position.set(localX, localY - 40);
       this.valueText.visible = true;
     }
   }

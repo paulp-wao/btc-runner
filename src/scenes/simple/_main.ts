@@ -9,6 +9,7 @@ import {
   createBoundaryResetSystem,
   createCameraUpdateSystem,
   createCamFollowPlayerSystem,
+  createGradientScrollSystem,
   createGravitySystem,
   createGraphCollisionSystem,
   createGraphUpdateSystem,
@@ -35,12 +36,15 @@ export const simpleScene = (di: IDiContainer): IScene => {
       await assetLoader.preload('running_egg', 'jumping_egg');
 
       const background = new BackgroundEntity({
-        width: gameConstants.virtualGameWidth * 0.85,
-        height: gameConstants.virtualGameHeight * 0.85,
-        color: 0x222222,
+        width: gameConstants.virtualGameWidth,
+        height: gameConstants.virtualGameHeight * 10, // 10x the canvas height
+        useGradient: true,
+        canvasHeight: gameConstants.virtualGameHeight,
       });
 
+      // Initialize to show bottom (green) - progress 0
       background.move({ x: 0, y: 0 });
+      background.updateScrollProgress(0);
 
       const playerSpawn = new PlayerSpawnEntity({ x: 50, y: 232 });
 
@@ -109,6 +113,7 @@ export const simpleScene = (di: IDiContainer): IScene => {
         createCamFollowPlayerSystem(di),
         createCameraUpdateSystem(di),
         createGraphUpdateSystem(di),
+        createGradientScrollSystem(di),
       );
     },
 

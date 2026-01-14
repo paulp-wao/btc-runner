@@ -37,7 +37,7 @@ export const simpleScene = (di: IDiContainer): IScene => {
 
       const background = new BackgroundEntity({
         width: gameConstants.virtualGameWidth * 3, // 3x width to cover camera movement
-        height: gameConstants.virtualGameHeight * 10, // 10x the canvas height
+        height: gameConstants.virtualGameHeight * 4.3, // 10x the canvas height
         useGradient: true,
         canvasHeight: gameConstants.virtualGameHeight,
       });

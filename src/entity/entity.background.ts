@@ -29,33 +29,27 @@ export class BackgroundEntity extends Entity {
 
   private drawGradient(): void {
     this.graphics.clear();
-
-    // Create gradient from Green (bottom) -> Blue (middle) -> Black (top)
+    
+    // Create gradient from Blue (bottom) -> Black (top)
     // Using multiple rectangles to simulate gradient
     // In PIXI, y=0 is at top, so we draw from bottom to top
     const steps = 200; // Number of gradient steps for smooth transition
     const stepHeight = this.height / steps;
 
+    // Blue color (RGB: 0, 102, 255 - standard blue)
+    const blueR = 0;
+    const blueG = 102;
+    const blueB = 255;
+
     for (let i = 0; i < steps; i++) {
       // Draw from bottom (y = height) to top (y = 0)
       const y = this.height - i * stepHeight;
-      const progress = i / (steps - 1); // 0 at bottom (green), 1 at top (black)
+      const progress = i / (steps - 1); // 0 at bottom (blue), 1 at top (black)
 
-      let r: number, g: number, b: number;
-
-      if (progress < 0.5) {
-        // Green to Blue (0 to 0.5)
-        const localProgress = progress * 2; // 0 to 1
-        r = Math.round(0 * (1 - localProgress) + 0 * localProgress);
-        g = Math.round(255 * (1 - localProgress) + 102 * localProgress);
-        b = Math.round(0 * (1 - localProgress) + 255 * localProgress);
-      } else {
-        // Blue to Black (0.5 to 1)
-        const localProgress = (progress - 0.5) * 2; // 0 to 1
-        r = Math.round(0 * (1 - localProgress) + 0 * localProgress);
-        g = Math.round(102 * (1 - localProgress) + 0 * localProgress);
-        b = Math.round(255 * (1 - localProgress) + 0 * localProgress);
-      }
+      // Interpolate from blue to black
+      const r = Math.round(blueR * (1 - progress));
+      const g = Math.round(blueG * (1 - progress));
+      const b = Math.round(blueB * (1 - progress));
 
       const color = (r << 16) | (g << 8) | b;
       this.graphics.rect(0, y, this.width, stepHeight + 1).fill({ color });

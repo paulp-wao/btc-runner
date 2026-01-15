@@ -111,6 +111,7 @@ export const simpleScene = (di: IDiContainer): IScene => {
         lineWidth: 2,
       });
       graph.move({ x: 0, y: 0 });
+      graph.setZIndex(15);
 
       // Create moon at the end of the graph, offset so player needs to jump to reach it
       const moonTexture = assetLoader.getTexture('moon');

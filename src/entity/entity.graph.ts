@@ -52,6 +52,14 @@ export class GraphEntity extends Entity {
     container.addChild(lineToPlayerGraphics);
     container.addChild(dotGraphics);
     container.addChild(valueText);
+
+    // Set z-index for internal elements so they render above the graph line
+    graphics.zIndex = 0;
+    lineToPlayerGraphics.zIndex = 1;
+    dotGraphics.zIndex = 10;
+    valueText.zIndex = 20;
+    container.sortableChildren = true;
+
     super(container);
 
     this.graphics = graphics;

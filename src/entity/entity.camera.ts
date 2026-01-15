@@ -70,4 +70,8 @@ export class CameraEntity extends Entity {
   public update(delta: number): void {
     this.viewport.update(delta * 1.15);
   }
+
+  public moveCenter(x: number, y: number): void {
+    this.viewport.moveCenter(x, y);
+  }
 }

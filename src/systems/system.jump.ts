@@ -1,4 +1,5 @@
 import type { ISystem } from '~/ecs/system.agg';
+import { GameStateEntity } from '~/entity/entity.game-state';
 import { PhysicsStateEntity } from '~/entity/entity.physics-state';
 import type { IDiContainer } from '~/util/di-container';
 
@@ -18,7 +19,9 @@ export const createJumpSystem = (di: IDiContainer): ISystem => {
       upKeyPressed = true;
     }
     if (e.key === ' ' || e.code === 'Space') {
-      if (canJump && jumpCount < maxJumps) {
+      // Only register jump if game is playing
+      const gameState = entityStore.first(GameStateEntity);
+      if (gameState?.isPlaying() && canJump && jumpCount < maxJumps) {
         jumpPressed = true;
         canJump = false;
       }

@@ -1,15 +1,18 @@
 import { BackgroundEntity } from '~/entity/entity.background';
 import { CameraEntity } from '~/entity/entity.camera';
+import { GameStateEntity } from '~/entity/entity.game-state';
 import { GraphEntity } from '~/entity/entity.graph';
 import { MoonEntity } from '~/entity/entity.moon';
 import { PhysicsStateEntity } from '~/entity/entity.physics-state';
 import { PlatformEntity } from '~/entity/entity.platform';
 import { PlayerEntity } from '~/entity/entity.player';
 import { PlayerSpawnEntity } from '~/entity/entity.player-spawn';
+import { StartScreenEntity } from '~/entity/entity.start-screen';
 import {
   createCameraUpdateSystem,
   createCamFollowPlayerSystem,
   createCelebrationSystem,
+  createGameStateSystem,
   createGraphCollisionSystem,
   createGraphUpdateSystem,
   createGravitySystem,
@@ -82,6 +85,9 @@ export const simpleScene = (di: IDiContainer): IScene => {
 
       player.move({ x: playerSpawn.spawnX, y: playerSpawn.spawnY });
 
+      // Stop player animation initially (game starts paused)
+      player.stopAnimation();
+
       const platform1 = new PlatformEntity({ width: 100, height: 16 });
       platform1.setPosition(50, 250);
 
@@ -100,7 +106,7 @@ export const simpleScene = (di: IDiContainer): IScene => {
         width: gameConstants.virtualGameWidth,
         height: gameConstants.virtualGameHeight,
         maxPoints: 150,
-        color: 0x00ff00,
+        color: 0xf7931a,
         lineWidth: 2,
       });
       graph.move({ x: 0, y: 0 });
@@ -116,6 +122,15 @@ export const simpleScene = (di: IDiContainer): IScene => {
       // Set player z-index higher than moon so player renders on top
       player.setZIndex(20);
 
+      // Create game state entity
+      const gameState = new GameStateEntity();
+
+      // Create start screen overlay
+      const startScreen = new StartScreenEntity({
+        width: gameConstants.virtualGameWidth,
+        height: gameConstants.virtualGameHeight,
+      });
+
       entityStore.add(camera);
       entityStore.add(background);
       //entityStore.add(platform1, platform2, platform3, platform4);
@@ -124,8 +139,11 @@ export const simpleScene = (di: IDiContainer): IScene => {
       entityStore.add(playerSpawn);
       entityStore.add(graph);
       entityStore.add(moon);
+      entityStore.add(gameState);
+      entityStore.add(startScreen);
 
       systemAgg.add(
+        createGameStateSystem(di),
         createPlayerMovementSystem(di),
         createJumpSystem(di),
         createGravitySystem(di),
@@ -143,7 +161,20 @@ export const simpleScene = (di: IDiContainer): IScene => {
     },
 
     update: (delta: number) => {
-      systemAgg.update(delta);
+      const gameState = entityStore.first(GameStateEntity);
+
+      // Always update the game state system (handles start screen)
+      const gameStateSystem = systemAgg.getAll().find((s) => s.name() === 'game-state-system');
+      gameStateSystem?.update(delta);
+
+      // Update gameplay systems when the game is playing or won
+      if (gameState?.isPlaying() || gameState?.isWon()) {
+        for (const system of systemAgg.getAll()) {
+          if (system.name() !== 'game-state-system') {
+            system.update(delta);
+          }
+        }
+      }
     },
 
     dispose: () => {},

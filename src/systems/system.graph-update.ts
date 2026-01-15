@@ -1,5 +1,6 @@
 import type { ISystem } from '~/ecs/system.agg';
 import type { IEntityStore } from '~/ecs/entity.store';
+import { GameStateEntity } from '~/entity/entity.game-state';
 import { GraphEntity } from '~/entity/entity.graph';
 import { PhysicsStateEntity } from '~/entity/entity.physics-state';
 import { PlayerEntity } from '~/entity/entity.player';
@@ -17,10 +18,11 @@ export const createGraphUpdateSystem = (di: IDiContainer): ISystem => {
       const graph = entityStore.first(GraphEntity);
       const physics = entityStore.first(PhysicsStateEntity);
       const player = entityStore.first(PlayerEntity);
+      const gameState = entityStore.first(GameStateEntity);
       if (!graph) return;
 
-      // Stop scrolling when game is won
-      if (physics?.gameWon) {
+      // Stop scrolling when game is won or lost
+      if (physics?.gameWon || gameState?.isLost()) {
         player?.setAnimationSpeedMultiplier(0.5);
         return;
       }
@@ -63,6 +65,7 @@ export const createGraphUpdateSystem = (di: IDiContainer): ISystem => {
         }
 
       }
+
       // Update scroll with speed multiplier
       graph.updateScroll(delta, speedMultiplier);
     },

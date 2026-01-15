@@ -15,6 +15,12 @@ export class GraphEntity extends Entity {
   private lastValidY: number | null = null;
   private moonValue: number = 0;
 
+  // Graph falling configuration
+  private fallSpeed: number = 0.5; // How fast the graph falls (pixels per frame)
+  private fallStartDistance: number = 60; // Screen X position where falling starts (points left of this fall)
+  private fallAcceleration: number = 0.02; // How much faster points fall the further left they are
+  private fallingOffsets: number[] = []; // Track falling offset for each point
+
   constructor(props: {
     width: number;
     height: number;
@@ -83,6 +89,9 @@ export class GraphEntity extends Entity {
   }
 
   private initializeDataPoints(): void {
+    // Initialize falling offsets array (all zeros initially)
+    this.fallingOffsets = [];
+
     const predeterminedPoints = [
       0, -36, -15, -30, -18, -28, -20, -27, -22, -29, -25, -33, -28, -33, -29, -34, -29, -33, -30, -33, -32, -37, -34,
       -37, -34, -37, -34, -37, -34, -37, -35, -41, -41, -49, -49, -55, -56, -61, -60, -65, -64, -71, -74, -78, -81, -86,
@@ -139,6 +148,7 @@ export class GraphEntity extends Entity {
     ];
     for (let i = 0; i < predeterminedPoints.length; i++) {
       this.dataPoints.push(predeterminedPoints[i]);
+      this.fallingOffsets.push(0); // Initialize falling offset for each point
     }
 
     // Draw the initial graph
@@ -163,8 +173,32 @@ export class GraphEntity extends Entity {
 
     this.ticks += speedMultiplier;
 
+    // Update falling effect for points behind the player
+    this.updateFalling();
+
     // Redraw to show the updated scroll position
     this.redraw();
+  }
+
+  /**
+   * Updates the falling offset for all graph points.
+   * The graph constantly falls, but scrolling forward "outruns" the falling.
+   * If the player stops or slows down, the ground falls out from under them.
+   */
+  private updateFalling(): void {
+    // All points fall at the base speed, plus acceleration based on how far left they are
+    for (let i = 0; i < this.fallingOffsets.length; i++) {
+      // Calculate the screen X position of this point
+      const pointScreenX = i * this.pointSpacing - this.ticks;
+
+      // Points to the left of the fall start distance fall
+      // The further left, the faster they fall
+      if (pointScreenX < this.fallStartDistance) {
+        const distanceBehind = this.fallStartDistance - pointScreenX;
+        const acceleratedFallSpeed = this.fallSpeed + (distanceBehind * this.fallAcceleration);
+        this.fallingOffsets[i] += acceleratedFallSpeed;
+      }
+    }
   }
 
   public redraw(): void {
@@ -174,14 +208,15 @@ export class GraphEntity extends Entity {
       return;
     }
 
-    // Draw the curve line with scroll offset applied
+    // Draw the curve line with scroll offset and falling offset applied
     // Start from the first point, offset by scroll amount
     const startX = -this.ticks;
-    this.graphics.moveTo(startX, this.dataPoints[0]);
+    const startY = this.dataPoints[0] + (this.fallingOffsets[0] || 0);
+    this.graphics.moveTo(startX, startY);
 
     for (let i = 1; i < this.dataPoints.length; i++) {
       const x = i * this.pointSpacing - this.ticks;
-      const y = this.dataPoints[i];
+      const y = this.dataPoints[i] + (this.fallingOffsets[i] || 0); // Apply falling offset
       this.graphics.lineTo(x, y);
     }
 
@@ -225,8 +260,8 @@ export class GraphEntity extends Entity {
 
     // Handle boundary cases
     if (pointIndex < 0) {
-      // x is before the first point, return first point's y value
-      return this.dataPoints[0];
+      // x is before the first point, return first point's y value with falling offset
+      return this.dataPoints[0] + (this.fallingOffsets[0] || 0);
     }
 
     if (pointIndex >= this.dataPoints.length - 1) {
@@ -239,8 +274,9 @@ export class GraphEntity extends Entity {
     const upperIndex = Math.ceil(pointIndex);
     const t = pointIndex - lowerIndex; // interpolation factor (0 to 1)
 
-    const y1 = this.dataPoints[lowerIndex];
-    const y2 = this.dataPoints[upperIndex];
+    // Get base y values with falling offsets applied
+    const y1 = this.dataPoints[lowerIndex] + (this.fallingOffsets[lowerIndex] || 0);
+    const y2 = this.dataPoints[upperIndex] + (this.fallingOffsets[upperIndex] || 0);
 
     return y1 + (y2 - y1) * t;
   }
@@ -371,6 +407,69 @@ export class GraphEntity extends Entity {
 
   public reset(): void {
     this.ticks = 0;
+    // Reset all falling offsets to zero
+    for (let i = 0; i < this.fallingOffsets.length; i++) {
+      this.fallingOffsets[i] = 0;
+    }
     this.redraw();
+  }
+
+  // Getters and setters for falling configuration
+  public getFallSpeed(): number {
+    return this.fallSpeed;
+  }
+
+  public setFallSpeed(speed: number): void {
+    this.fallSpeed = speed;
+  }
+
+  public getFallStartDistance(): number {
+    return this.fallStartDistance;
+  }
+
+  public setFallStartDistance(distance: number): void {
+    this.fallStartDistance = distance;
+  }
+
+  public getFallAcceleration(): number {
+    return this.fallAcceleration;
+  }
+
+  public setFallAcceleration(acceleration: number): void {
+    this.fallAcceleration = acceleration;
+  }
+
+  /**
+   * Returns the falling offset at a given x coordinate.
+   * Used to determine if the graph has fallen away at the player's position.
+   * @param x The x coordinate in the graph's coordinate system
+   * @returns The falling offset, or 0 if x is outside bounds
+   */
+  public getFallingOffsetAtX(x: number): number {
+    if (this.dataPoints.length === 0) {
+      return 0;
+    }
+
+    // Convert x coordinate to point index accounting for scroll offset
+    const pointIndex = (x + this.getOffset()) / this.pointSpacing;
+
+    // Handle boundary cases
+    if (pointIndex < 0) {
+      return this.fallingOffsets[0] || 0;
+    }
+
+    if (pointIndex >= this.dataPoints.length - 1) {
+      return 0;
+    }
+
+    // Linear interpolation between two points' falling offsets
+    const lowerIndex = Math.floor(pointIndex);
+    const upperIndex = Math.ceil(pointIndex);
+    const t = pointIndex - lowerIndex;
+
+    const offset1 = this.fallingOffsets[lowerIndex] || 0;
+    const offset2 = this.fallingOffsets[upperIndex] || 0;
+
+    return offset1 + (offset2 - offset1) * t;
   }
 }

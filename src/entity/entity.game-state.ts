@@ -1,7 +1,7 @@
 import * as PIXI from 'pixi.js';
 import { Entity } from '../ecs/entity';
 
-export type GameState = 'waiting' | 'playing' | 'won';
+export type GameState = 'waiting' | 'playing' | 'won' | 'lost';
 
 export class GameStateEntity extends Entity {
   public state: GameState = 'waiting';
@@ -24,12 +24,20 @@ export class GameStateEntity extends Entity {
     return this.state === 'won';
   }
 
+  public isLost(): boolean {
+    return this.state === 'lost';
+  }
+
   public startGame(): void {
     this.state = 'playing';
   }
 
   public winGame(): void {
     this.state = 'won';
+  }
+
+  public loseGame(): void {
+    this.state = 'lost';
   }
 
   public reset(): void {

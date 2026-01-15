@@ -170,8 +170,8 @@ export const simpleScene = (di: IDiContainer): IScene => {
       const gameStateSystem = systemAgg.getAll().find((s) => s.name() === 'game-state-system');
       gameStateSystem?.update(delta);
 
-      // Update gameplay systems when the game is playing or won
-      if (gameState?.isPlaying() || gameState?.isWon()) {
+      // Update gameplay systems when the game is playing, won, or lost
+      if (gameState?.isPlaying() || gameState?.isWon() || gameState?.isLost()) {
         for (const system of systemAgg.getAll()) {
           if (system.name() !== 'game-state-system') {
             system.update(delta);

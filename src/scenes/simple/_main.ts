@@ -12,6 +12,7 @@ import {
   createCameraUpdateSystem,
   createCamFollowPlayerSystem,
   createCelebrationSystem,
+  createCloudsSystem,
   createGameStateSystem,
   createGraphCollisionSystem,
   createGraphUpdateSystem,
@@ -156,6 +157,7 @@ export const simpleScene = (di: IDiContainer): IScene => {
         createCameraUpdateSystem(di),
         createGraphUpdateSystem(di),
         createSweatDropsSystem(di),
+        createCloudsSystem(di),
         createCelebrationSystem(di),
       );
     },

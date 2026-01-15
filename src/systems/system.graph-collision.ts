@@ -38,7 +38,7 @@ export const createGraphCollisionSystem = (di: IDiContainer): ISystem => {
       }
 
       // Update debug bounding box visual with collision state
-      player.updateDebugVisual(isColliding);
+      //player.updateDebugVisual(isColliding);
     },
   };
 };

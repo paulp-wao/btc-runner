@@ -59,7 +59,6 @@ export class PlayerEntity extends Entity {
     // Create debug graphics for bounding box
     this.debugGraphics = new PIXI.Graphics();
     this.ctr.addChild(this.debugGraphics);
-    this.updateBoundingBoxVisual();
   }
 
   // Override rect to use consistent collision dimensions

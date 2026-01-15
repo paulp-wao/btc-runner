@@ -5,6 +5,7 @@ import jumping_egg_url from '../assets/images/jumping-egg-sheet.png';
 import moon_url from '../assets/images/moon-image.png';
 import nyan_cat_url from '../assets/images/nyan-cat.png';
 import running_egg_url from '../assets/images/running-egg-sheet.png';
+import sweat_drop_url from '../assets/images/sweat_drop.png';
 
 const assetMap = {
   bunny: bunny_url,
@@ -13,9 +14,10 @@ const assetMap = {
   celebration_egg: celebration_egg_url,
   moon: moon_url,
   nyan_cat: nyan_cat_url,
+  sweat_drop: sweat_drop_url,
 };
 
-export const assetFilePath = ['bunny', 'running_egg', 'jumping_egg', 'celebration_egg', 'moon', 'nyan_cat'] as const;
+export const assetFilePath = ['bunny', 'running_egg', 'jumping_egg', 'celebration_egg', 'moon', 'nyan_cat', 'sweat_drop'] as const;
 export type AssetName = (typeof assetFilePath)[number];
 
 const assertNoMissingAssetName = () => {

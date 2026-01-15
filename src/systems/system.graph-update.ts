@@ -50,7 +50,7 @@ export const createGraphUpdateSystem = (di: IDiContainer): ISystem => {
             lastSweatSpawnTime++;
             if (lastSweatSpawnTime >= sweatSpawnInterval) {
               lastSweatSpawnTime = 0;
-              spawnSweatDrops(player, entityStore);
+              spawnSweatDrops(player, entityStore, di);
             }
           } else {
             // Restore normal animation speed
@@ -69,17 +69,16 @@ export const createGraphUpdateSystem = (di: IDiContainer): ISystem => {
   };
 };
 
-function spawnSweatDrops(player: PlayerEntity, entityStore: IEntityStore): void {
+function spawnSweatDrops(player: PlayerEntity, entityStore: IEntityStore, di: IDiContainer): void {
     // Spawn from the top of the player (head area)
     // Player is anchored at bottom-center, so we need to offset upward
-    const spawnX = player.ctr.x + (Math.random() - 0.5) * 2; // Random horizontal spread
-    const spawnY = player.getTopY() + Math.random() * 3; // Top of player
+    const spawnX = player.ctr.x + - 5 +(Math.random() - 0.5) * 5; // Random horizontal spread
+    const spawnY = player.getTopY() - 5 + Math.random() * 10; // Top of player
 
     // Random velocity - mostly upward and to the sides
     const velocityX = -5 - Math.random() * 5;
-    const velocityY =  -5 - Math.random() * 5; // Mostly upward
+    const velocityY =  -1 - Math.random() * 5; // Mostly upward
 
-    const sweatDrop = new SweatDropEntity(spawnX, spawnY, velocityX, velocityY);
-    sweatDrop.setZIndex(15); // Render above graph but below player
+    const sweatDrop = new SweatDropEntity(spawnX, spawnY, velocityX, velocityY, di);
     entityStore.add(sweatDrop);
 }
